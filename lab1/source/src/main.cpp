@@ -22,7 +22,7 @@
 #define NUM_FEATURES 5
 
 const bool train = true;
-const bool showImg = true;
+const bool showImg = false;
 const int numCharacters = 2;
 
 /*
@@ -54,6 +54,16 @@ Character characters[4] =
 };
 
 
+bool isOrange(unsigned char red, unsigned char green, unsigned char blue)
+{
+	return blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255;
+}
+
+bool isBlue(unsigned char red, unsigned char green, unsigned char blue)
+{
+	return blue >= 128 && green <= 128 && red <= 128;
+}
+
 char* checkImage(char* fName, Character character)
 {
 	// Variable store pressed key
@@ -77,6 +87,7 @@ char* checkImage(char* fName, Character character)
 	// Feature variables
 	float fOrange;
 	float fWhite;
+	float fBlue;
 
 	// OpenCV variables related to the image structure.
 	// IplImage structure contains several information of the image (See OpenCV manual).	
@@ -121,6 +132,7 @@ char* checkImage(char* fName, Character character)
 	// Initialize variables with zero 
 	fOrange = 0.0;
 	fWhite = 0.0;
+	fBlue = 0.0;
 
 	// Loop that reads each image pixel
 	for (h = 0; h < img->height; h++) // rows
@@ -139,7 +151,7 @@ char* checkImage(char* fName, Character character)
 
 			// Detect and count the number of orange pixels
 			// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
-			if (blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255)
+			if (isOrange(red, green, blue))
 			{
 				fOrange++;
 
@@ -159,6 +171,17 @@ char* checkImage(char* fName, Character character)
 
 			// Here you can add your own features....... Good luck
 
+			// Detect and count the number of blue pixels
+			if (isBlue(red, green, blue))
+			{
+				fBlue++;
+
+				// Just to be sure we are doing the right thing, we change the color of the orange pixels to pink [R=255, G=0, B=255] and show them into a cloned image (processed)
+
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 0;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 255;
+			}
 		}
 	}
 
@@ -167,6 +190,7 @@ char* checkImage(char* fName, Character character)
 	// Normalize the feature by the image size
 	fOrange = fOrange / ((int)img->height * (int)img->width);
 	fWhite = fWhite / ((int)img->height * (int)img->width);
+	fBlue = fBlue / ((int)img->height * (int)img->width);
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -174,6 +198,7 @@ char* checkImage(char* fName, Character character)
 
 	// Here you can add more features to your feature vector by filling the other columns: 
 	//   fVector[3] = ???; fVector[4] = ???;
+	fVector[3] = fBlue;
 
 	// And finally, store your features in a file
 
@@ -185,7 +210,7 @@ char* checkImage(char* fName, Character character)
 	}
 
 	// TODO Add 3, 4, 5 (new primitives)
-	sprintf(output, "%f,%f,%s", fVector[1], fVector[2], character.label);
+	sprintf(output, "%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], character.label);
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
@@ -230,6 +255,7 @@ int main( int argc, char** argv )
 	fprintf(fp, "@relation Homer-Bart\n\n");
 	fprintf(fp, "@attribute primitive1 numeric\n");
 	fprintf(fp, "@attribute primitive2 numeric\n");
+	fprintf(fp, "@attribute primitive3 numeric\n");
 	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
 	fprintf(fp, "@data\n\n");
 
