@@ -14,24 +14,48 @@
 #include <highgui.h>		//OpenCV lib
 #include <stdio.h>	
 #include <math.h>
+#include <string>
 
 
 // DEFINES
 #define NUM_SAMPLES 100
 #define NUM_FEATURES 5
 
-// Bart Train: 80 items: bart1.bmp - bart80.bmp
-// Homer Train 62 items: homer1.bmp - homer62.bmp
-// Bart Valid: 54 items: bart116.bmp - bart169.bmp
-// Homer Valid: 37 items: homer88.bmp - homer124.bmp
+const bool train = true;
+const bool showImg = true;
+const int numCharacters = 2;
 
-// MAIN
-int main( int argc, char** argv )   
+/*
+  Holds information on each character in the training and validation sets
+ */
+struct Character
 {
-	bool train = true;
-	bool showImg = false;
-	
+	char* name;
+	char* label;
+	int numTrain;
+	int numValid;
 
+	/* Constructor */
+	Character(char* pname, char* plabel, int pnumTrain, int pnumValid)
+	{
+		name = pname;
+		label = plabel;
+		numTrain = pnumTrain;
+		numValid = pnumValid;
+	}
+};
+
+Character characters[4] =
+{
+	Character("bart", "Bart", 80, 54),
+	Character("homer", "Homer", 62, 37),
+	Character("lisa", "Lisa", 0, 0),
+	Character("other", "Unknown", 0, 0)
+};
+
+
+char* checkImage(char* fName, Character character)
+{
 	// Variable store pressed key
 	int tecla;
 
@@ -40,7 +64,6 @@ int main( int argc, char** argv )
 	int w;
 	int ii;
 	int jj;
-	int iNum;
 
 	// Variables to store the RGB values of a pixel
 	unsigned char red;
@@ -49,300 +72,128 @@ int main( int argc, char** argv )
 
 	// Feature vector [rows] [columns]
 	// In fact it is a "matrix of features"
-	float fVector[ NUM_SAMPLES ][ NUM_FEATURES ];
+	float fVector[NUM_FEATURES];
 
 	// Feature variables
 	float fOrange;
 	float fWhite;
 
-	// Variable filename
-	static char cFileName[ 50 ] = {'\0'};
-	FILE *fp;
-	
-	// Open a text file to store the feature vectors
-	if(train)
-		fp = fopen ("apprentissage-homer-bart.arff","w");
-	else
-		fp = fopen ("validation-homer-bart.arff", "w");
-
-	fprintf(fp, "@relation Homer-Bart\n\n");
-	fprintf(fp, "@attribute primitive1 numeric\n");
-	fprintf(fp, "@attribute primitive2 numeric\n");
-	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
-	fprintf(fp, "@data\n\n");
-
-	// fp = fopen ("validation-homer-bart.arff","w");
-
-	if(fp == NULL) {
-		if(train)
-			perror("failed to open apprentissage-homer-bart.arff");
-		else
-			perror("failed to open validation-homer-bart.arff");
-		return EXIT_FAILURE;
-	}
-
 	// OpenCV variables related to the image structure.
 	// IplImage structure contains several information of the image (See OpenCV manual).	
-	IplImage *img 			= NULL;
-	IplImage *processed 	= NULL;
-	IplImage *threshold 		= NULL;
-	
+	IplImage *img = NULL;
+	IplImage *processed = NULL;
+	IplImage *threshold = NULL;
+
 	// OpenCV variable that stores the image width and height
 	CvSize tam;
 
 	// OpenCV variable that stores a pixel value
 	CvScalar element;
-	
+
 	// Fill fVector with zeros
-	for ( ii = 0 ; ii < NUM_SAMPLES ; ii++ )
+	
+	for (jj = 0; jj < NUM_FEATURES; jj++)
 	{
-		for ( jj = 0; jj < NUM_FEATURES; jj++ )
-		{
-			fVector[ii][jj] = 0.0;
-		}
+		fVector[jj] = 0.0;
 	}
 
-	// Fill cFileName with zeros
-	for ( ii = 0 ; ii < 50 ; ii++ )
+	printf(" %s\n", fName);
+
+	// Load the image from disk to the structure img.
+	// 1  - Load a 3-channel image (color)
+	// 0  - Load a 1-channel image (gray level)
+	// -1 - Load the image as it is  (depends on the file)
+
+	img = cvLoadImage(fName, -1);
+
+	// Gets the image size (width, height) 'img' 
+	tam = cvGetSize(img);
+
+	// Creates a header and allocates memory (tam) to store a copy of the original image.
+	// 1 - gray level image
+	// 3 - color image	
+	// processed = cvCreateImage( tam, IPL_DEPTH_8U, 3);
+
+	// Make a image clone and store it at processed and threshold
+	processed = cvCloneImage(img);
+	threshold = cvCloneImage(img);
+
+	// Initialize variables with zero 
+	fOrange = 0.0;
+	fWhite = 0.0;
+
+	// Loop that reads each image pixel
+	for (h = 0; h < img->height; h++) // rows
 	{
-		cFileName[ ii ] = '\0';
-	}
-
-
-	// *****************************************************************************************************************************************
-	// TRAINING SAMPLES 
-	// HOMER
-	// Homer Train 62 items: homer1.bmp - homer62.bmp
-	// *****************************************************************************************************************************************
-
-	// Take all the image files at the range
-	for ( iNum = 1; iNum <= 62; iNum++ )
-	{
-		// Build the image filename and path to read from disk
-		sprintf ( cFileName, "Train/homer%d.bmp", (int)(iNum) );
-		//sprintf ( cFileName, "Valid/homer%d.bmp", (int)(iNum) ); 
-		printf ( " %s\n", cFileName);
-
-		// Load the image from disk to the structure img.
-		// 1  - Load a 3-channel image (color)
-		// 0  - Load a 1-channel image (gray level)
-		// -1 - Load the image as it is  (depends on the file)
-		
-		img = cvLoadImage( cFileName, -1 );
-
-		// Gets the image size (width, height) 'img' 
-		tam = cvGetSize( img );
-
-		// Creates a header and allocates memory (tam) to store a copy of the original image.
-		// 1 - gray level image
-		// 3 - color image	
-		// processed = cvCreateImage( tam, IPL_DEPTH_8U, 3);
-
-		// Make a image clone and store it at processed and threshold
-		processed 	= cvCloneImage( img );
-		threshold  		= cvCloneImage( img );
-
-		// Initialize variables with zero 
-		fOrange 	= 0.0;
-		fWhite 	= 0.0;
-
-		// Loop that reads each image pixel
-		for( h = 0; h < img->height; h++ ) // rows
+		for (w = 0; w < img->width; w++) // columns
 		{
-			for( w = 0; w < img->width; w++ ) // columns
+			// Read each channel and writes it into the blue, green and red variables. Notice that OpenCV considers BGR
+			blue = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 0];
+			green = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 1];
+			red = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 2];
+
+			// Shows the pixel value at the screen
+			//printf( "pixel[%d][%d]= %d %d %d \n", h, w, (int)blue, (int)green, (int)red );
+
+			// Here starts the feature extraction....
+
+			// Detect and count the number of orange pixels
+			// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
+			if (blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255)
 			{
-				// Read each channel and writes it into the blue, green and red variables. Notice that OpenCV considers BGR
-				blue  	= ( (uchar *)(img->imageData + h*img->widthStep) )[ w*img->nChannels + 0 ];
-				green 	= ( (uchar *)(img->imageData + h*img->widthStep) )[ w*img->nChannels + 1 ];
-				red   		= ( (uchar *)(img->imageData + h*img->widthStep) )[ w*img->nChannels + 2 ];
+				fOrange++;
 
-				// Shows the pixel value at the screenl
-				//printf( "pixel[%d][%d]= %d %d %d \n", h, w, (int)blue, (int)green, (int)red );
+				// Just to be sure we are doing the right thing, we change the color of the orange pixels to green [R=0, G=255, B=0] and show them into a cloned image (processed)
 
-				// Here starts the feature extraction....
-				
-				// Detect and count the number of orange pixels
-				// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
-				if ( blue>=11 && blue<=22 && green>=85 && green<=105 &&  red>=240 && red<=255 )
-				{
-					fOrange++;
-				
-					// Just to be sure we are doing the right thing, we change the color of the orange pixels to green [R=0, G=255, B=0] and show them into a cloned image (processed)
-				
-					( (uchar *)(processed->imageData + h*processed->widthStep) )[ w*processed->nChannels + 0 ] = 0; 
-					( (uchar *)(processed->imageData + h*processed->widthStep) )[ w*processed->nChannels + 1 ] = 255; 
-					( (uchar *)(processed->imageData + h*processed->widthStep) )[ w*processed->nChannels + 2 ] = 0; 
-				}
-				
-				// Detect and count the number of white pixels (just a dummy feature...)
-				// Verify if the pixels have a given value ( White, defined as R[253-255], G[253-255], B[253-255] ). If so, count it...
-				if ( blue >= 253 && green >= 253 && red >= 253 )
-				{
-					fWhite++;
-				}
-				
-				// Here you can add your own features....... Good luck
-				
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 0;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 255;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
 			}
-		}
 
-		// Lets make our counting somewhat independent on the image size...
-		// Compute the percentage of pixels of a given colour.
-		// Normalize the feature by the image size
-		fOrange 	= fOrange / ( (int)img->height * (int)img->width );
-		fWhite  	= fWhite  / ( (int)img->height * (int)img->width );
-
-		// Store the feature value in the columns of the feature (matrix) vector
-		fVector[iNum][1] = fOrange;
-		fVector[iNum][2] = fWhite;
-
-		// Here you can add more features to your feature vector by filling the other columns: 
-		//   fVector[iNum][3] = ???; fVector[iNum][4] = ???;
-
-		// Shows the feature vector at the screen
-		printf( "\n%d %f %f", iNum, fVector[iNum][1], fVector[iNum][2] );
-		//printf( "\n%d %f %f %f %f %f", iNum, fVector[iNum][1], fVector[iNum][2], fVector[iNum][3], fVector[iNum][4], fVector[iNum][5] );
-
-		// And finally, store your features in a file
-		fprintf( fp, "%f,", fVector[iNum][1]);
-		fprintf( fp, "%f,", fVector[iNum][2]);
-		//fprintf( fp, "%f,", fVector[iNum][3]);
-		//fprintf( fp, "%f,", fVector[iNum][4]);
-		//fprintf( fp, "%f,", fVector[iNum][5]);
-		
-		// IMPORTANT
-		// Do not forget the label.... 	
-		fprintf( fp, "%s\n", "Homer");
-
-
-		// Finally, give a look at the original image and the image with the pixels of interest in green
-		// OpenCV create an output window
-		if(showImg)
-		{
-			cvShowImage( "Original", img );
-			cvShowImage( "Processed", processed );
-		}
-		
-		// Wait until a key is pressed to continue... 	
-		tecla = cvWaitKey(0);
-	}
-	// *****************************************************************************************************************************************
-	// *****************************************************************************************************************************************
-	// *****************************************************************************************************************************************
-	// TRAINING SAMPLES 
-	// BART
-	// Bart Train: 80 items: bart1.bmp - bart80.bmp
-	// The code below is exactly the same for HOMER, except that we have changed the values of iNum and Homer -> Bart
-	// along the file
-	// *****************************************************************************************************************************************
-
-	// Take all the image files at the range
-	for ( iNum = 1; iNum <= 80; iNum++ )
-	{
-		// Build the image filename and path to read from disk
-		sprintf ( cFileName, "Train/bart%d.bmp", (int)(iNum) ); 
-		//sprintf ( cFileName, "Valid/bart%d.bmp", (int)(iNum) ); 
-		printf ( " %s\n", cFileName);
-
-		// Load the image from disk to the structure img.
-		// 1  - Load a 3-channel image (color)
-		// 0  - Load a 1-channel image (gray level)
-		// -1 - Load the image as it is  (depends on the file)
-		
-		img = cvLoadImage( cFileName, -1 );
-
-		// Gets the image size (width, height) 'img' 
-		tam = cvGetSize( img );
-
-		// Creates a header and allocates memory (tam) to store a copy of the original image.
-		// 1 - gray level image
-		// 3 - color image	
-		// processed = cvCreateImage( tam, IPL_DEPTH_8U, 3);
-
-		// Make a image clone and store it at processed and threshold
-		processed 	= cvCloneImage( img );
-		threshold  		= cvCloneImage( img );
-
-		// Initialize variables with zero 
-		fOrange 	= 0.0;
-		fWhite 	= 0.0;
-
-		// Loop that reads each image pixel
-		for( h = 0; h < img->height; h++ ) // rows
-		{
-			for( w = 0; w < img->width; w++ ) // columns
+			// Detect and count the number of white pixels (just a dummy feature...)
+			// Verify if the pixels have a given value ( White, defined as R[253-255], G[253-255], B[253-255] ). If so, count it...
+			if (blue >= 253 && green >= 253 && red >= 253)
 			{
-				// Read each channel and writes it into the blue, green and red variables. Notice that OpenCV considers BGR
-				blue  	= ( (uchar *)(img->imageData + h*img->widthStep) )[ w*img->nChannels + 0 ];
-				green 	= ( (uchar *)(img->imageData + h*img->widthStep) )[ w*img->nChannels + 1 ];
-				red   		= ( (uchar *)(img->imageData + h*img->widthStep) )[ w*img->nChannels + 2 ];
-
-				// Shows the pixel value at the screenl
-				//printf( "pixel[%d][%d]= %d %d %d \n", h, w, (int)blue, (int)green, (int)red );
-
-				// Here starts the feature extraction....
-				
-				// Detect and count the number of orange pixels
-				// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
-				if ( blue>=11 && blue<=22 && green>=85 && green<=105 &&  red>=240 && red<=255 )
-				{
-					fOrange++;
-				
-					// Just to be sure we are doing the right thing, we change the color of the orange pixels to green [R=0, G=255, B=0] and show them into a cloned image (processed)
-				
-					( (uchar *)(processed->imageData + h*processed->widthStep) )[ w*processed->nChannels + 0 ] = 0; 
-					( (uchar *)(processed->imageData + h*processed->widthStep) )[ w*processed->nChannels + 1 ] = 255; 
-					( (uchar *)(processed->imageData + h*processed->widthStep) )[ w*processed->nChannels + 2 ] = 0; 
-				}
-				
-				// Detect and count the number of white pixels (just a dummy feature...)
-				// Verify if the pixels have a given value ( White, defined as R[253-255], G[253-255], B[253-255] ). If so, count it...
-				if ( blue >= 253 && green >= 253 && red >= 253 )
-				{
-					fWhite++;
-				}
-				
-				// Here you can add your own features....... Good luck
-				
+				fWhite++;
 			}
+
+			// Here you can add your own features....... Good luck
+
 		}
+	}
 
-		// Lets make our counting somewhat independent on the image size...
-		// Compute the percentage of pixels of a given colour.
-		// Normalize the feature by the image size
-		fOrange 	= fOrange / ( (int)img->height * (int)img->width );
-		fWhite  	= fWhite  / ( (int)img->height * (int)img->width );
+	// Lets make our counting somewhat independent on the image size...
+	// Compute the percentage of pixels of a given colour.
+	// Normalize the feature by the image size
+	fOrange = fOrange / ((int)img->height * (int)img->width);
+	fWhite = fWhite / ((int)img->height * (int)img->width);
 
-		// Store the feature value in the columns of the feature (matrix) vector
-		fVector[iNum][1] = fOrange;
-		fVector[iNum][2] = fWhite;
-		
-		// Here you can add more features to your feature vector by filling the other columns: 
-		//   fVector[iNum][3] = ???; fVector[iNum][4] = ???;
-		
-		// Shows the feature vector at the screen
-		printf( "\n%d %f %f", iNum, fVector[iNum][1], fVector[iNum][2] );
-		//printf( "\n%d %f %f %f %f %f", iNum, fVector[iNum][1], fVector[iNum][2], fVector[iNum][3], fVector[iNum][4], fVector[iNum][5] );
+	// Store the feature value in the columns of the feature (matrix) vector
+	fVector[1] = fOrange;
+	fVector[2] = fWhite;
 
-		// And finally, store your features in a file
-		fprintf( fp, "%f,", fVector[iNum][1]);
-		fprintf( fp, "%f,", fVector[iNum][2]);
-		//fprintf( fp, "%f,", fVector[iNum][3]);
-		//fprintf( fp, "%f,", fVector[iNum][4]);
-		//fprintf( fp, "%f,", fVector[iNum][5]);
-		
-		// IMPORTANT
-		// Do not forget the label.... 	
-		fprintf( fp, "%s\n", "Bart");
+	// Here you can add more features to your feature vector by filling the other columns: 
+	//   fVector[3] = ???; fVector[4] = ???;
 
+	// And finally, store your features in a file
 
-		// Finally, give a look at the original image and the image with the pixels of interest in green
-		if (showImg)
-		{
-			cvShowImage("Original", img);
-			cvShowImage("Processed", processed);
-		}
-		
+	static char output[255] = { '\0' };
+	// Fill output with zeros
+	for (ii = 0; ii < 255; ii++)
+	{
+		output[ii] = '\0';
+	}
+
+	// TODO Add 3, 4, 5 (new primitives)
+	sprintf(output, "%f,%f,%s", fVector[1], fVector[2], character.label);
+
+	// Finally, give a look at the original image and the image with the pixels of interest in green
+	// OpenCV create an output window
+	if (showImg)
+	{
+		cvShowImage("Original", img);
+		cvShowImage("Processed", processed);
+
 		// Wait until a key is pressed to continue... 	
 		tecla = cvWaitKey(0);
 	}
@@ -352,6 +203,58 @@ int main( int argc, char** argv )
 
 	cvReleaseImage(&processed);
 	cvDestroyWindow("Processed");
+
+	return output;
+}
+
+// MAIN
+int main( int argc, char** argv )   
+{
+	int ii;
+	int jj;
+	int numSamples;
+
+	// Variable filename
+	static char cFileName[50] = { '\0' };
+	FILE *fp;
+	
+	// Open a text file to store the feature vectors
+	fp = fopen ((train ? "apprentissage-homer-bart.arff" : "validation-homer-bart.arff"),"w");
+
+	if(fp == NULL) {
+		perror((train ? "failed to open apprentissage-homer-bart.arff" : "failed to open validation-homer-bart.arff"));
+		return EXIT_FAILURE;
+	}
+
+	// File initialization for Weka
+	fprintf(fp, "@relation Homer-Bart\n\n");
+	fprintf(fp, "@attribute primitive1 numeric\n");
+	fprintf(fp, "@attribute primitive2 numeric\n");
+	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
+	fprintf(fp, "@data\n\n");
+
+	// Fill cFileName with zeros
+	for ( ii = 0 ; ii < 50 ; ii++ )
+	{
+		cFileName[ ii ] = '\0';
+	}
+
+	char* result;
+
+	for (ii = 0; ii < numCharacters; ii++)
+	{
+		Character c = characters[ii];
+		numSamples = (train ? c.numTrain : c.numValid);
+
+		for (jj = 1; jj <= numSamples; jj++)
+		{
+			sprintf(cFileName, "%s/%s%d.bmp", (train ? "Train" : "Valid"), c.name, jj);
+			result = checkImage(cFileName, c);
+
+			printf("%s\n", result);
+			fprintf(fp, "%s\n", result);
+		}
+	}
 
 	fclose(fp);
 
