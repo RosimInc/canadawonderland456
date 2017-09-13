@@ -1,4 +1,4 @@
-@relation Homer - Bart
+@relation Homer-Bart
 
 @attribute primitive1 numeric
 @attribute primitive2 numeric

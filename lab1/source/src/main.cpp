@@ -28,6 +28,9 @@
 // MAIN
 int main( int argc, char** argv )   
 {
+	bool train = true;
+	bool showImg = false;
+	
 
 	// Variable store pressed key
 	int tecla;
@@ -57,12 +60,24 @@ int main( int argc, char** argv )
 	FILE *fp;
 	
 	// Open a text file to store the feature vectors
-	fp = fopen ("apprentissage-homer-bart.txt","w");
-	// fp = fopen ("validation-homer-bart.txt","w");
+	if(train)
+		fp = fopen ("apprentissage-homer-bart.arff","w");
+	else
+		fp = fopen ("validation-homer-bart.arff", "w");
+
+	fprintf(fp, "@relation Homer-Bart\n\n");
+	fprintf(fp, "@attribute primitive1 numeric\n");
+	fprintf(fp, "@attribute primitive2 numeric\n");
+	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
+	fprintf(fp, "@data\n\n");
+
+	// fp = fopen ("validation-homer-bart.arff","w");
 
 	if(fp == NULL) {
-		perror("failed to open apprentissage-homer-bart.txt");
-		// perror("failed to open validation-homer-bart.txt");
+		if(train)
+			perror("failed to open apprentissage-homer-bart.arff");
+		else
+			perror("failed to open validation-homer-bart.arff");
 		return EXIT_FAILURE;
 	}
 
@@ -180,9 +195,10 @@ int main( int argc, char** argv )
 		// Store the feature value in the columns of the feature (matrix) vector
 		fVector[iNum][1] = fOrange;
 		fVector[iNum][2] = fWhite;
-		
-		// Here you can add more features to your feature vector by filling the other columns: fVector[iNum][3] = ???; fVector[iNum][4] = ???;
-		
+
+		// Here you can add more features to your feature vector by filling the other columns: 
+		//   fVector[iNum][3] = ???; fVector[iNum][4] = ???;
+
 		// Shows the feature vector at the screen
 		printf( "\n%d %f %f", iNum, fVector[iNum][1], fVector[iNum][2] );
 		//printf( "\n%d %f %f %f %f %f", iNum, fVector[iNum][1], fVector[iNum][2], fVector[iNum][3], fVector[iNum][4], fVector[iNum][5] );
@@ -201,8 +217,11 @@ int main( int argc, char** argv )
 
 		// Finally, give a look at the original image and the image with the pixels of interest in green
 		// OpenCV create an output window
-		cvShowImage( "Original", img );
-		cvShowImage( "Processed", processed );
+		if(showImg)
+		{
+			cvShowImage( "Original", img );
+			cvShowImage( "Processed", processed );
+		}
 		
 		// Wait until a key is pressed to continue... 	
 		tecla = cvWaitKey(0);
@@ -298,7 +317,8 @@ int main( int argc, char** argv )
 		fVector[iNum][1] = fOrange;
 		fVector[iNum][2] = fWhite;
 		
-		// Here you can add more features to your feature vector by filling the other columns: fVector[iNum][3] = ???; fVector[iNum][4] = ???;
+		// Here you can add more features to your feature vector by filling the other columns: 
+		//   fVector[iNum][3] = ???; fVector[iNum][4] = ???;
 		
 		// Shows the feature vector at the screen
 		printf( "\n%d %f %f", iNum, fVector[iNum][1], fVector[iNum][2] );
@@ -317,8 +337,11 @@ int main( int argc, char** argv )
 
 
 		// Finally, give a look at the original image and the image with the pixels of interest in green
-		cvShowImage( "Original", img );
-		cvShowImage( "Processed", processed );
+		if (showImg)
+		{
+			cvShowImage("Original", img);
+			cvShowImage("Processed", processed);
+		}
 		
 		// Wait until a key is pressed to continue... 	
 		tecla = cvWaitKey(0);
