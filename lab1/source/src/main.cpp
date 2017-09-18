@@ -2,7 +2,7 @@
 * GTI770 - Systemes intelligents et apprentissage machine
 * Alessandro L. Koerich
 * alessandro.koerich@etsmtl.ca
-* 2015
+* 2015 
 *
 * EXEMPLE 1: Feature extraction from RGB images
 *                       Simpsons Family
@@ -22,7 +22,7 @@
 #define NUM_FEATURES 5
 
 const bool train = true;
-const bool showImg = false;
+const bool showImg = true;
 const int numCharacters = 2;
 
 /*
@@ -45,12 +45,16 @@ struct Character
 	}
 };
 
-Character characters[4] =
+Character characters[8] =
 {
-	Character("bart", "Bart", 80, 54),
-	Character("homer", "Homer", 62, 37),
-	Character("lisa", "Lisa", 0, 0),
-	Character("other", "Unknown", 0, 0)
+	Character("bart", "Bart", 80, 115),
+	Character("homer", "Homer", 62, 87),
+	Character("lisa", "Lisa", 33, 46),
+	Character("family", "Other", 27, 38),
+	Character("maggie", "Other", 30, 42),
+	Character("marge", "Other", 24, 34),
+	Character("other", "Other", 121, 170),
+	Character("school", "Other", 35, 49)
 };
 
 
@@ -272,9 +276,10 @@ int main( int argc, char** argv )
 		Character c = characters[ii];
 		numSamples = (train ? c.numTrain : c.numValid);
 
-		for (jj = 1; jj <= numSamples; jj++)
+		jj = (train ? 1 : c.numTrain + 1);
+		for (; jj <= numSamples; jj++)
 		{
-			sprintf(cFileName, "%s/%s%d.bmp", (train ? "Train" : "Valid"), c.name, jj);
+			sprintf(cFileName, "%s/%s%03d.bmp", (train ? "Train" : "Valid"), c.name, jj);
 			result = checkImage(cFileName, c);
 
 			printf("%s\n", result);
