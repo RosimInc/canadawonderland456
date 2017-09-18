@@ -58,6 +58,12 @@ Character characters[8] =
 };
 
 
+// TODO: isRed (pour lisa)
+
+// TODO: isWhite
+
+// TODO: isBrown (pour la barbe a homer)
+
 bool isOrange(unsigned char red, unsigned char green, unsigned char blue)
 {
 	return blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255;
@@ -65,6 +71,7 @@ bool isOrange(unsigned char red, unsigned char green, unsigned char blue)
 
 bool isBlue(unsigned char red, unsigned char green, unsigned char blue)
 {
+	// TODO: Improve treshold, blue can currently be grey
 	return blue >= 128 && green <= 128 && red <= 128;
 }
 
