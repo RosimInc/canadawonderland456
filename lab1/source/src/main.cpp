@@ -75,6 +75,25 @@ bool isBlue(unsigned char red, unsigned char green, unsigned char blue)
 	return blue >= 128 && green <= 128 && red <= 128;
 }
 
+void findLines(IplImage* img) {
+	std::vector<cv::Vec4i> lines;
+	cv::Mat mat = cv::Mat(img);
+	// detect the lines
+	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 80, 30, 10);
+	//for (size_t i = 0; i < lines.size(); i++)
+	//{
+		//cv::Vec2f l = lines[i];
+		// draw the lines
+
+		//cv::Point p1, p2;
+		//p1 = cv::Point(l[0], l[1]);
+		//p2 = cv::Point(l[2], l[3]);
+		//calculate angle in radian,  if you need it in degrees just do angle * 180 / PI
+		
+		//printf("Point(%d, %d) - Point(%d, %d)\n", l[0], l[1], l[2], l[3]);
+	//}
+}
+
 char* checkImage(char* fName, Character character)
 {
 	// Variable store pressed key
@@ -144,6 +163,8 @@ char* checkImage(char* fName, Character character)
 	fOrange = 0.0;
 	fWhite = 0.0;
 	fBlue = 0.0;
+
+	findLines(img);
 
 	// Loop that reads each image pixel
 	for (h = 0; h < img->height; h++) // rows
