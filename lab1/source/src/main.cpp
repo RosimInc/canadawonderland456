@@ -75,6 +75,40 @@ bool isBlue(unsigned char red, unsigned char green, unsigned char blue)
 	return blue >= 128 && green <= 128 && red <= 128;
 }
 
+void findLines(IplImage* img) {
+	std::vector<cv::Vec4i> lines;
+	lines.reserve(10000);
+	cv::Mat mat = cv::Mat(img);
+	// detect the lines
+	//IplImage *gray = NULL;
+	//gray = cvLoadImage(fName, CV_LOAD_IMAGE_GRAYSCALE);
+	// TODO: Test cornerHarris
+	cv::Canny(mat, mat, 10, 100, 3);
+	//cv::dilate(mat, mat, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
+	cv::imshow("tes2t", mat);
+	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 20, 5, 5);
+
+
+	cv::Mat newImg = cv::Mat(img->height, img->width, CV_8U);
+	newImg = cv::Scalar(255);
+
+	printf("Size %d\n", lines.size());
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		cv::Vec4i l = lines[i];
+		// draw the lines
+
+		cv::Point p1, p2;
+		p1 = cv::Point(l[0], l[1]);
+		p2 = cv::Point(l[2], l[3]);
+
+		cv::line(newImg, p1, p2, 0, 1, 8, 0);
+		//printf("Point(%d, %d) - Point(%d, %d)\n", l[0], l[1], l[2], l[3]);
+     }
+
+	cv::imshow("test", newImg);
+}
+
 char* checkImage(char* fName, Character character)
 {
 	// Variable store pressed key
@@ -144,6 +178,10 @@ char* checkImage(char* fName, Character character)
 	fOrange = 0.0;
 	fWhite = 0.0;
 	fBlue = 0.0;
+
+
+	//cvThreshold(gray, gray,15,255,CV_THRESH_BINARY_INV);
+	findLines(img);
 
 	// Loop that reads each image pixel
 	for (h = 0; h < img->height; h++) // rows
