@@ -1,0 +1,9 @@
+@relation Homer-Bart
+
+@attribute primitive1 numeric
+@attribute primitive2 numeric
+@attribute primitive3 numeric
+@attribute classe {Homer, Bart}
+
+@data
+

@@ -21,9 +21,9 @@
 #define NUM_SAMPLES 100
 #define NUM_FEATURES 5
 
-const bool train = true;
-const bool showImg = true;
-const int numCharacters = 2;
+const bool train = true;		// Whether we use the training data set
+const bool showImg = true;		// Whether we display the images
+const int numCharacters = 2;	// Number of characters (2, 3, 8)
 
 /*
   Holds information on each character in the training and validation sets
@@ -248,12 +248,6 @@ void checkCircles(char* fName)
 	// Variable store pressed key
 	int tecla;
 
-	// General variables (loop)
-	int h;
-	int w;
-	int ii;
-	int jj;
-
 	// OpenCV variables related to the image structure.
 	// IplImage structure contains several information of the image (See OpenCV manual).	
 	IplImage *img = NULL;
@@ -276,7 +270,7 @@ void checkCircles(char* fName)
 	// 0  - Load a 1-channel image (gray level)
 	// -1 - Load the image as it is  (depends on the file)
 
-	img = cvLoadImage(fName, -1);
+	img = cvLoadImage(fName, CV_LOAD_IMAGE_UNCHANGED);
 	gray = cvLoadImage(fName, CV_LOAD_IMAGE_GRAYSCALE);
 
 	// Gets the image size (width, height) 'img' 
@@ -284,15 +278,17 @@ void checkCircles(char* fName)
 	processed = cvCloneImage(img);
 	threshold = cvCloneImage(gray);
 
-	cvThreshold(gray, threshold, 220, 255, CV_THRESH_BINARY);
+	cvThreshold(gray, threshold, 150, 255, CV_THRESH_BINARY_INV);
+
 
 	CvMemStorage* storage = cvCreateMemStorage(0);
 	CvSeq* results = cvHoughCircles(
 		threshold,
 		storage,
 		CV_HOUGH_GRADIENT,
-		5,
-		50
+		1,
+		threshold->width / 40,
+		100, 20, 1, 17
 		);
 
 	for (size_t i = 0; i < results->total; i++)
@@ -304,56 +300,10 @@ void checkCircles(char* fName)
 			processed,
 			pt,
 			cvRound(p[2]),
-			CV_RGB(0xff, 0, 0),
-			2
+			CV_RGB(0, 0xff, 0x99),
+			3
 			);
-
-		//cvCircle(processed, cvPoint(c., c[1]));
-		//circle(img, Point(c[0], c[1]), c[2], Scalar(0, 0, 255), 3, LINE_AA);
-		//circle(img, Point(c[0], c[1]), 2, Scalar(0, 255, 0), 3, LINE_AA);
 	}
-
-
-	/*vector<Vec3f> circles;
-	HoughCircles(gray, circles, HOUGH_GRADIENT, 1,
-		gray.rows / 16, // change this value to detect circles with different distances to each other
-		100, 30, 1, 30 // change the last two parameters
-					   // (min_radius & max_radius) to detect larger circles
-		);*/
-
-	// Creates a header and allocates memory (tam) to store a copy of the original image.
-	// 1 - gray level image
-	// 3 - color image	
-	// processed = cvCreateImage( tam, IPL_DEPTH_8U, 3);
-
-	// Make a image clone and store it at processed and threshold
-
-	// Loop that reads each image pixel
-	/*for (h = 0; h < img->height; h++) // rows
-	{
-		for (w = 0; w < img->width; w++) // columns
-		{*/
-
-
-
-
-			// Read each channel and writes it into the blue, green and red variables. Notice that OpenCV considers BGR
-			//blue = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 0];
-			//green = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 1];
-			//red = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 2];
-
-			// Detect and count the number of orange pixels
-			// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
-			
-				// Just to be sure we are doing the right thing, we change the color of the orange pixels to green [R=0, G=255, B=0] and show them into a cloned image (processed)
-
-				//((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 0;
-				//((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 255;
-				//((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
-			
-
-		/*}
-	}*/
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
@@ -441,6 +391,7 @@ int main(int argc, char** argv)
 	int result = 0;
 
 	checkCircles("Train/Lisa001.bmp");
+
 	result = performTraining();
 
 	return result;
