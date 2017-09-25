@@ -19,11 +19,11 @@
 
 // DEFINES
 #define NUM_SAMPLES 100
-#define NUM_FEATURES 5
+#define NUM_FEATURES 6
 
 const bool train = true;		// Whether we use the training data set
-const bool showImg = true;		// Whether we display the images
-const int numCharacters = 2;	// Number of characters (2, 3, 8)
+const bool showImg = false;		// Whether we display the images
+const int numCharacters = 3;	// Number of characters (2, 3, 8)
 
 /*
   Holds information on each character in the training and validation sets
@@ -58,11 +58,25 @@ Character characters[8] =
 };
 
 
-// TODO: isRed (pour lisa)
+bool isRed(unsigned char red, unsigned char green, unsigned char blue)
+{
+	return blue <= 5 && green <= 5 && red >= 250;
+}
 
-// TODO: isWhite
+bool isWhite(unsigned char red, unsigned char green, unsigned char blue)
+{
+	return blue >= 253 && green >= 253 && red >= 253;
+}
 
-// TODO: isBrown (pour la barbe a homer)
+/*
+ * TODO:
+ * With this RGB range, we find that some Bart images have brown color. 
+ * To lessen false positives, either combine brown and blue primitives or reduce the brown RGB range detection
+ */
+bool isBrown(unsigned char red, unsigned char green, unsigned char blue)
+{
+	return blue >= 95 && blue <= 135 && green >= 150 && green <= 185 && red >= 180 && red <= 210;
+}
 
 bool isOrange(unsigned char red, unsigned char green, unsigned char blue)
 {
@@ -133,6 +147,8 @@ char* checkImage(char* fName, Character character)
 	float fOrange;
 	float fWhite;
 	float fBlue;
+	float fBrown;
+	float fRed;
 
 	// OpenCV variables related to the image structure.
 	// IplImage structure contains several information of the image (See OpenCV manual).	
@@ -178,7 +194,8 @@ char* checkImage(char* fName, Character character)
 	fOrange = 0.0;
 	fWhite = 0.0;
 	fBlue = 0.0;
-
+	fBrown = 0.0;
+	fRed = 0.0;
 
 	//cvThreshold(gray, gray,15,255,CV_THRESH_BINARY_INV);
 	findLines(img);
@@ -213,7 +230,7 @@ char* checkImage(char* fName, Character character)
 
 			// Detect and count the number of white pixels (just a dummy feature...)
 			// Verify if the pixels have a given value ( White, defined as R[253-255], G[253-255], B[253-255] ). If so, count it...
-			if (blue >= 253 && green >= 253 && red >= 253)
+			else if (isWhite(red, green, blue))
 			{
 				fWhite++;
 			}
@@ -221,7 +238,7 @@ char* checkImage(char* fName, Character character)
 			// Here you can add your own features....... Good luck
 
 			// Detect and count the number of blue pixels
-			if (isBlue(red, green, blue))
+			else if (isBlue(red, green, blue))
 			{
 				fBlue++;
 
@@ -230,6 +247,30 @@ char* checkImage(char* fName, Character character)
 				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
 				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 0;
 				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 255;
+			}
+
+			// Detect and count the number of brown pixels
+			else if (isBrown(red, green, blue))
+			{
+				fBrown++;
+
+				// Just to be sure we are doing the right thing, we change the color of the orange pixels to pink [R=0, G=255, B=255] and show them into a cloned image (processed)
+
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 255;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
+			}
+
+			// Detect and count the number of brown pixels
+			else if (isRed(red, green, blue))
+			{
+				fRed++;
+
+				// Just to be sure we are doing the right thing, we change the color of the orange pixels to pink [R=0, G=255, B=255] and show them into a cloned image (processed)
+
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 0;
+				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
 			}
 		}
 	}
@@ -240,6 +281,8 @@ char* checkImage(char* fName, Character character)
 	fOrange = fOrange / ((int)img->height * (int)img->width);
 	fWhite = fWhite / ((int)img->height * (int)img->width);
 	fBlue = fBlue / ((int)img->height * (int)img->width);
+	fBrown = fBrown / ((int)img->height * (int)img->width);
+	fRed = fRed / ((int)img->height * (int)img->width);
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -248,6 +291,8 @@ char* checkImage(char* fName, Character character)
 	// Here you can add more features to your feature vector by filling the other columns: 
 	//   fVector[3] = ???; fVector[4] = ???;
 	fVector[3] = fBlue;
+	fVector[4] = fBrown;
+	fVector[5] = fRed;
 
 	// And finally, store your features in a file
 
@@ -259,7 +304,7 @@ char* checkImage(char* fName, Character character)
 	}
 
 	// TODO Add 3, 4, 5 (new primitives)
-	sprintf(output, "%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], character.label);
+	sprintf(output, "%f,%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4], fVector[5], character.label);
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
@@ -366,7 +411,6 @@ void checkCircles(char* fName)
 }
 
 
-
 int performTraining()
 {
 	int ii;
@@ -387,10 +431,12 @@ int performTraining()
 
 	// File initialization for Weka
 	fprintf(fp, "@relation Homer-Bart\n\n");
-	fprintf(fp, "@attribute primitive1 numeric\n");
-	fprintf(fp, "@attribute primitive2 numeric\n");
-	fprintf(fp, "@attribute primitive3 numeric\n");
-	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
+	fprintf(fp, "@attribute colorOrange numeric\n");
+	fprintf(fp, "@attribute colorWhite numeric\n");
+	fprintf(fp, "@attribute colorBlue numeric\n");
+	fprintf(fp, "@attribute colorBrown numeric\n");
+	fprintf(fp, "@attribute colorRed numeric\n");
+	fprintf(fp, "@attribute classe {Homer, Bart, Lisa}\n\n");
 	fprintf(fp, "@data\n\n");
 
 	// Fill cFileName with zeros
