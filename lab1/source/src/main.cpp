@@ -22,7 +22,7 @@
 #define NUM_FEATURES 6
 
 const bool train = true;		// Whether we use the training data set
-const bool showImg = false;		// Whether we display the images
+const bool showImg = true;		// Whether we display the images
 const int numCharacters = 3;	// Number of characters (2, 3, 8)
 
 /*
@@ -99,7 +99,7 @@ void findLines(IplImage* img) {
 	// TODO: Test cornerHarris
 	cv::Canny(mat, mat, 10, 100, 3);
 	//cv::dilate(mat, mat, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
-	cv::imshow("tes2t", mat);
+	//cv::imshow("tes2t", mat);
 	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 20, 5, 5);
 
 
@@ -361,19 +361,33 @@ void checkCircles(char* fName)
 	processed = cvCloneImage(img);
 	threshold = cvCloneImage(gray);
 
-	cvThreshold(gray, threshold, 150, 255, CV_THRESH_BINARY_INV);
+	cvThreshold(gray, threshold, 230, 255, CV_THRESH_BINARY_INV);
 
+	float kernel[] = { 0.f,  0.2f, 0.f,
+		0.2f,  0.2f, 0.2f,
+		0.f, 0.2f, 0.f };
 
+	//Vertical filter
+
+	CvMat kernel_ = cvMat(3, 3, CV_32FC1, kernel);
+
+	//cvConvertImage(gray, threshold, CV_GRAY2BGR);
+	//cvFilter2D(gray, threshold, &kernel_, cvPoint(-1, -1));
+
+	
+	/*
 	CvMemStorage* storage = cvCreateMemStorage(0);
 	CvSeq* results = cvHoughCircles(
 		threshold,
 		storage,
 		CV_HOUGH_GRADIENT,
 		1,
-		threshold->width / 40,
-		100, 20, 1, 17
+		threshold->width / 60,
+		100, 35, 1, 20
 		);
+	*/
 
+	/*
 	for (size_t i = 0; i < results->total; i++)
 	{
 		float* p = (float*)cvGetSeqElem(results, i);
@@ -383,10 +397,11 @@ void checkCircles(char* fName)
 			processed,
 			pt,
 			cvRound(p[2]),
-			CV_RGB(0, 0xff, 0x99),
-			3
+			CV_RGB(0, 0, 0xff),
+			2
 			);
 	}
+	*/
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
@@ -474,7 +489,7 @@ int main(int argc, char** argv)
 {
 	int result = 0;
 
-	checkCircles("Train/Lisa001.bmp");
+	//checkCircles("Train/Lisa002.bmp");
 
 	result = performTraining();
 
