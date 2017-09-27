@@ -58,13 +58,19 @@ Character characters[8] =
 };
 
 
-bool isRed(unsigned char red, unsigned char green, unsigned char blue)
+bool isRed(cv::Vec3b color)
 {
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
 	return blue <= 5 && green <= 5 && red >= 250;
 }
 
-bool isWhite(unsigned char red, unsigned char green, unsigned char blue)
+bool isWhite(cv::Vec3b color)
 {
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
 	return blue >= 253 && green >= 253 && red >= 253;
 }
 
@@ -73,26 +79,36 @@ bool isWhite(unsigned char red, unsigned char green, unsigned char blue)
  * With this RGB range, we find that some Bart images have brown color. 
  * To lessen false positives, either combine brown and blue primitives or reduce the brown RGB range detection
  */
-bool isBrown(unsigned char red, unsigned char green, unsigned char blue)
+bool isBrown(cv::Vec3b color)
 {
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
 	return blue >= 95 && blue <= 135 && green >= 150 && green <= 185 && red >= 180 && red <= 210;
 }
 
-bool isOrange(unsigned char red, unsigned char green, unsigned char blue)
+bool isOrange(cv::Vec3b color)
 {
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
 	return blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255;
 }
 
-bool isBlue(unsigned char red, unsigned char green, unsigned char blue)
+bool isBlue(cv::Vec3b color)
 {
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
 	// TODO: Improve treshold, blue can currently be grey
 	return blue >= 128 && green <= 128 && red <= 128;
 }
 
-void findLines(IplImage* img) {
+void findLines(cv::Mat img) 
+{
 	std::vector<cv::Vec4i> lines;
 	lines.reserve(10000);
-	cv::Mat mat = cv::Mat(img);
+	cv::Mat mat = img.clone();
 	// detect the lines
 	//IplImage *gray = NULL;
 	//gray = cvLoadImage(fName, CV_LOAD_IMAGE_GRAYSCALE);
@@ -107,8 +123,7 @@ void findLines(IplImage* img) {
 	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 20, 5, 5);
 
 
-	cv::Mat newImg = cv::Mat(img->height, img->width, CV_8U);
-	newImg = cv::Scalar(255);
+	cv::Mat newImg = cv::Mat(img.rows, img.cols, CV_8U, cv::Scalar(255));
 
 	printf("Size %d\n", lines.size());
 	for (size_t i = 0; i < lines.size(); i++)
@@ -147,7 +162,6 @@ void findLines(IplImage* img) {
 		}
 	}
 
-
 	imshow("corners_window", dst_norm_scaled);
 
 	cv::imshow("test", newImg);
@@ -183,15 +197,15 @@ char* checkImage(char* fName, Character character)
 
 	// OpenCV variables related to the image structure.
 	// IplImage structure contains several information of the image (See OpenCV manual).	
-	IplImage *img = NULL;
-	IplImage *processed = NULL;
-	IplImage *threshold = NULL;
+	cv::Mat img;
+	cv::Mat processed;
+	cv::Mat threshold;
 
 	// OpenCV variable that stores the image width and height
-	CvSize tam;
+	//CvSize tam;
 
 	// OpenCV variable that stores a pixel value
-	CvScalar element;
+	//CvScalar element;
 
 	// Fill fVector with zeros
 	
@@ -207,10 +221,10 @@ char* checkImage(char* fName, Character character)
 	// 0  - Load a 1-channel image (gray level)
 	// -1 - Load the image as it is  (depends on the file)
 
-	img = cvLoadImage(fName, -1);
+	img = cv::imread(fName, -1);
 
 	// Gets the image size (width, height) 'img' 
-	tam = cvGetSize(img);
+	//tam = cvGetSize(img);
 
 	// Creates a header and allocates memory (tam) to store a copy of the original image.
 	// 1 - gray level image
@@ -218,8 +232,8 @@ char* checkImage(char* fName, Character character)
 	// processed = cvCreateImage( tam, IPL_DEPTH_8U, 3);
 
 	// Make a image clone and store it at processed and threshold
-	processed = cvCloneImage(img);
-	threshold = cvCloneImage(img);
+	processed = img.clone();
+	threshold = img.clone();
 
 	// Initialize variables with zero 
 	fOrange = 0.0;
@@ -228,80 +242,64 @@ char* checkImage(char* fName, Character character)
 	fBrown = 0.0;
 	fRed = 0.0;
 
-	//cvThreshold(gray, gray,15,255,CV_THRESH_BINARY_INV);
 	findLines(img);
 
 	// Loop that reads each image pixel
-	for (h = 0; h < img->height; h++) // rows
+	for (h = 0; h < img.rows; h++) // rows
 	{
-		for (w = 0; w < img->width; w++) // columns
+		for (w = 0; w < img.cols; w++) // columns
 		{
-			// Read each channel and writes it into the blue, green and red variables. Notice that OpenCV considers BGR
-			blue = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 0];
-			green = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 1];
-			red = ((uchar *)(img->imageData + h*img->widthStep))[w*img->nChannels + 2];
-
-			// Shows the pixel value at the screen
-			//printf( "pixel[%d][%d]= %d %d %d \n", h, w, (int)blue, (int)green, (int)red );
+			cv::Vec3b color = img.at<cv::Vec3b>(h, w);
 
 			// Here starts the feature extraction....
 
 			// Detect and count the number of orange pixels
 			// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
-			if (isOrange(red, green, blue))
+			if (isOrange(color))
 			{
 				fOrange++;
 
-				// Just to be sure we are doing the right thing, we change the color of the orange pixels to green [R=0, G=255, B=0] and show them into a cloned image (processed)
-
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 0;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 255;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
+				color = cv::Vec3b(128, 128, 128);
+				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
 			// Detect and count the number of white pixels (just a dummy feature...)
 			// Verify if the pixels have a given value ( White, defined as R[253-255], G[253-255], B[253-255] ). If so, count it...
-			else if (isWhite(red, green, blue))
+			else if (isWhite(color))
 			{
 				fWhite++;
+
+				color = cv::Vec3b(0, 255, 0);
+				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
 			// Here you can add your own features....... Good luck
 
 			// Detect and count the number of blue pixels
-			else if (isBlue(red, green, blue))
+			else if (isBlue(color))
 			{
 				fBlue++;
 
-				// Just to be sure we are doing the right thing, we change the color of the orange pixels to pink [R=255, G=0, B=255] and show them into a cloned image (processed)
-
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 0;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 255;
+				color = cv::Vec3b(255, 0, 255);
+				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
 			// Detect and count the number of brown pixels
-			else if (isBrown(red, green, blue))
+			else if (isBrown(color))
 			{
 				fBrown++;
 
-				// Just to be sure we are doing the right thing, we change the color of the orange pixels to pink [R=0, G=255, B=255] and show them into a cloned image (processed)
-
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 255;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
+				color = cv::Vec3b(255, 255, 0);
+				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
 			// Detect and count the number of brown pixels
-			else if (isRed(red, green, blue))
+			else if (isRed(color))
 			{
 				fRed++;
 
-				// Just to be sure we are doing the right thing, we change the color of the orange pixels to pink [R=0, G=255, B=255] and show them into a cloned image (processed)
-
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 0] = 255;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 1] = 0;
-				((uchar *)(processed->imageData + h*processed->widthStep))[w*processed->nChannels + 2] = 0;
+				color = cv::Vec3b(0, 255, 255);
+				processed.at<cv::Vec3b>(h, w) = color;
 			}
 		}
 	}
@@ -309,11 +307,11 @@ char* checkImage(char* fName, Character character)
 	// Lets make our counting somewhat independent on the image size...
 	// Compute the percentage of pixels of a given colour.
 	// Normalize the feature by the image size
-	fOrange = fOrange / ((int)img->height * (int)img->width);
-	fWhite = fWhite / ((int)img->height * (int)img->width);
-	fBlue = fBlue / ((int)img->height * (int)img->width);
-	fBrown = fBrown / ((int)img->height * (int)img->width);
-	fRed = fRed / ((int)img->height * (int)img->width);
+	fOrange = fOrange / (img.rows * img.cols);
+	fWhite = fWhite / (img.rows * img.cols);
+	fBlue = fBlue / (img.rows * img.cols);
+	fBrown = fBrown / (img.rows * img.cols);
+	fRed = fRed / (img.rows * img.cols);
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -341,18 +339,19 @@ char* checkImage(char* fName, Character character)
 	// OpenCV create an output window
 	if (showImg)
 	{
-		cvShowImage("Original", img);
-		cvShowImage("Processed", processed);
+		cv::imshow("Original", img);
+		cv::imshow("Processed", processed);
 
 		// Wait until a key is pressed to continue... 	
-		tecla = cvWaitKey(0);
+		tecla = cv::waitKey(0);
+
 	}
 
-	cvReleaseImage(&img);
-	cvDestroyWindow("Original");
+	img.release();
+	processed.release();
+	threshold.release();
 
-	cvReleaseImage(&processed);
-	cvDestroyWindow("Processed");
+	cv::destroyAllWindows();
 
 	return output;
 }
