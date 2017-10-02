@@ -365,10 +365,6 @@ char* checkImage(char* fName, Character character)
 		}
 	}
 
-	// Lets make our counting somewhat independent on the image size...
-	// Compute the percentage of pixels of a given colour.
-	// Normalize the feature by the image size
-
 	//float normalizer = (img.rows * img.cols);
 	float normalizer = fYellow;
 
