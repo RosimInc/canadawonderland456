@@ -2,11 +2,15 @@
 * GTI770 - Systemes intelligents et apprentissage machine
 * Alessandro L. Koerich
 * alessandro.koerich@etsmtl.ca
-* 2015 
+* 2017
 *
 * EXEMPLE 1: Feature extraction from RGB images
 *                       Simpsons Family
 **/
+
+#define HB 0
+#define HBL 1
+#define HBLO 2
 
 // INCLUDES
 #include <cv.h> 			//OpenCV lib
@@ -16,14 +20,23 @@
 #include <math.h>
 #include <string>
 
-
-// DEFINES
-#define NUM_SAMPLES 100
-#define NUM_FEATURES 8
-
 const bool train = true;		// Whether we use the training data set
 const bool showImg = false;		// Whether we display the images
-const int numCharacters = 2;	// Number of characters (2, 3, 5)
+const int testCode = HB;			// Number of characters (2, 3, 5)
+
+struct Test
+{
+	char* trainFileName;
+	char* validFileName;
+	int numCharacters;
+
+	Test(char* tFileName, char* vFileName, int numChars)
+	{
+		trainFileName = tFileName;
+		validFileName = vFileName;
+		numCharacters = numChars;
+	}
+};
 
 /*
   Holds information on each character in the training and validation sets
@@ -57,6 +70,12 @@ Character characters[8] =
 	Character("marge", "Marge", 24, 34)
 };
 
+Test tests[3] =
+{
+	Test("apprentissage-homer-bart.arff", "validation-homer-bart.arff", 2),
+	Test("apprentissage-homer-bart-lisa.arff", "validation-homer-bart-lisa.arff", 3),
+	Test("apprentissage-homer-bart-lisa-others.arff", "validation-homer-bart-lisa-others.arff", 5)
+};
 
 bool isWhite(cv::Vec3b color)
 {
@@ -92,7 +111,7 @@ bool isYellow(cv::Vec3b color)
 	int blue = color[0];
 	int green = color[1];
 	int red = color[2];
-	return blue <= 11 && green >= 180 && green <= 200 && red >= 230 && red <= 255;
+	return blue <= 70 && green >= 180 && green <= 220 && red >= 230 && red <= 255;
 }
 
 bool isBlue(cv::Vec3b color)
@@ -100,8 +119,15 @@ bool isBlue(cv::Vec3b color)
 	int blue = color[0];
 	int green = color[1];
 	int red = color[2];
-	// TODO: Improve treshold, blue can currently be grey
-	return blue >= 128 && green <= 128 && red <= 128;
+	return blue >= 150 && blue <= 190 && green >= 85 && green <= 130 && red <= 90;
+}
+
+bool isPurple(cv::Vec3b color) 
+{
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
+	return blue >= 50 && blue <= 150 && green >= 0 && green <= 50 && red <= 50;
 }
 
 bool isRed(cv::Vec3b color)
@@ -213,14 +239,11 @@ char* checkImage(char* fName, Character character)
 	unsigned char blue;
 	unsigned char green;
 
-	// Feature vector [rows] [columns]
-	// In fact it is a "matrix of features"
-	float fVector[NUM_FEATURES];
-
 	// Feature variables
 	float fOrange;
 	float fWhite;
 	float fBlue;
+	float fPurple;
 	float fBrown;
 	float fRed;
 	float fLightBlue;
@@ -235,11 +258,6 @@ char* checkImage(char* fName, Character character)
 
 	// Fill fVector with zeros
 	
-	for (jj = 0; jj < NUM_FEATURES; jj++)
-	{
-		fVector[jj] = 0.0;
-	}
-
 	printf(" %s\n", fName);
 
 	// Load the image from disk to the structure img.
@@ -252,7 +270,7 @@ char* checkImage(char* fName, Character character)
 	// Make a image clone and store it at processed and threshold
 	processed = img.clone();
 	threshold = img.clone();
-	cvtColor(img, gray, CV_BGR2GRAY);
+	/*cvtColor(img, gray, CV_BGR2GRAY);
 	cv::threshold(gray, bw, 230, 255, CV_THRESH_BINARY);
 
 	/// Reduce the noise so we avoid false circle detection
@@ -271,12 +289,13 @@ char* checkImage(char* fName, Character character)
 		cv::circle(processed, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
 		// circle outline
 		cv::circle(processed, center, radius, cv::Scalar(0, 0, 255), 3, 8, 0);
-	}
+	}*/
 
 	// Initialize variables with zero 
 	fOrange = 0.0;
 	fWhite = 0.0;
 	fBlue = 0.0;
+	fPurple = 0.0;
 	fBrown = 0.0;
 	fRed = 0.0;
 	fLightBlue = 0.0;
@@ -321,8 +340,17 @@ char* checkImage(char* fName, Character character)
 			{
 				fBlue++;
 
-				/*color = cv::Vec3b(255, 0, 255);
-				processed.at<cv::Vec3b>(h, w) = color;*/
+				color = cv::Vec3b(255, 0, 255);
+				processed.at<cv::Vec3b>(h, w) = color;
+			}
+
+			// Detect and count the number of blue pixels
+			else if (isPurple(color))
+			{
+				fPurple++;
+
+				color = cv::Vec3b(255, 255, 0);
+				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
 			// Detect and count the number of brown pixels
@@ -376,22 +404,11 @@ char* checkImage(char* fName, Character character)
 	fOrange = normalize(fOrange, fYellow);
 	fWhite = normalize(fWhite, fYellow);
 	fBlue = normalize(fBlue, fYellow);
+	fPurple = normalize(fPurple, fYellow);
 	fBrown = normalize(fBrown, fYellow);
 	fRed = normalize(fRed, fYellow);
 	fLightBlue = normalize(fLightBlue, fYellow);
 	fGreen = normalize(fGreen, fYellow);
-
-	// Store the feature value in the columns of the feature (matrix) vector
-	fVector[1] = fOrange;
-	fVector[2] = fWhite;
-
-	// Here you can add more features to your feature vector by filling the other columns: 
-	//   fVector[3] = ???; fVector[4] = ???;
-	fVector[3] = fBlue;
-	fVector[4] = fBrown;
-	fVector[5] = fRed;
-	fVector[6] = fLightBlue;
-	fVector[7] = fGreen;
 
 	// And finally, store your features in a file
 
@@ -402,10 +419,13 @@ char* checkImage(char* fName, Character character)
 		output[ii] = '\0';
 	}
 
-	// TODO Add 3, 4, 5 (new primitives) --- %f,%f,%f,
-	sprintf(output, "%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4]/*, fVector[5], fVector[6], fVector[7]*/, character.label);
-
-
+	if (testCode == HB)
+		sprintf(output, "%f,%f,%f,%f,%f,%s", fOrange, fWhite, fBlue, fPurple, fBrown, character.label);
+	else if(testCode == HBL)
+		sprintf(output, "%f,%f,%f,%f,%f,%f,%s", fOrange, fWhite, fBlue, fPurple, fBrown, fRed, character.label);
+	else
+		sprintf(output, "%f,%f,%f,%f,%f,%f,%f,%f,%s", fOrange, fWhite, fBlue, fPurple, fBrown, fRed, fLightBlue, fGreen, character.label);
+		
 	
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
@@ -414,121 +434,18 @@ char* checkImage(char* fName, Character character)
 	{
 		cv::imshow("Original", img);
 		cv::imshow("Processed", processed);
-		//cv::imshow("BW", bw);
 
 		// Wait until a key is pressed to continue... 	
 		tecla = cv::waitKey(0);
 	}
 
-	/*img.release();
+	img.release();
 	processed.release();
-	threshold.release();
-	gray.release();
-	bw.release();*/
 
 	cv::destroyAllWindows();
 
 	return output;
 }
-
-/*void checkCircles(char* fName)
-{
-	// Variable store pressed key
-	int tecla;
-
-	// OpenCV variables related to the image structure.
-	// IplImage structure contains several information of the image (See OpenCV manual).	
-	IplImage *img = NULL;
-	IplImage *gray = NULL;
-	IplImage *processed = NULL;
-	IplImage *threshold = NULL;
-
-	// OpenCV variable that stores the image width and height
-	CvSize tam;
-
-	// OpenCV variable that stores a pixel value
-	CvScalar element;
-
-	// Fill fVector with zeros
-
-	printf(" %s\n", fName);
-
-	// Load the image from disk to the structure img.
-	// 1  - Load a 3-channel image (color)
-	// 0  - Load a 1-channel image (gray level)
-	// -1 - Load the image as it is  (depends on the file)
-
-	img = cvLoadImage(fName, CV_LOAD_IMAGE_UNCHANGED);
-	gray = cvLoadImage(fName, CV_LOAD_IMAGE_GRAYSCALE);
-
-	// Gets the image size (width, height) 'img' 
-	tam = cvGetSize(img);
-	processed = cvCloneImage(img);
-	threshold = cvCloneImage(gray);
-
-	cvThreshold(gray, threshold, 230, 255, CV_THRESH_BINARY_INV);
-
-	float kernel[] = { 0.f,  0.2f, 0.f,
-		0.2f,  0.2f, 0.2f,
-		0.f, 0.2f, 0.f };
-
-	//Vertical filter
-
-	CvMat kernel_ = cvMat(3, 3, CV_32FC1, kernel);
-
-	//cvConvertImage(gray, threshold, CV_GRAY2BGR);
-	//cvFilter2D(gray, threshold, &kernel_, cvPoint(-1, -1));
-
-	
-	///////
-	CvMemStorage* storage = cvCreateMemStorage(0);
-	CvSeq* results = cvHoughCircles(
-		threshold,
-		storage,
-		CV_HOUGH_GRADIENT,
-		1,
-		threshold->width / 60,
-		100, 35, 1, 20
-		);
-	///////
-
-	///////
-	for (size_t i = 0; i < results->total; i++)
-	{
-		float* p = (float*)cvGetSeqElem(results, i);
-		CvPoint pt = cvPoint(cvRound(p[0]), cvRound(p[1]));
-		
-		cvCircle(
-			processed,
-			pt,
-			cvRound(p[2]),
-			CV_RGB(0, 0, 0xff),
-			2
-			);
-	}
-	////////
-
-	// Finally, give a look at the original image and the image with the pixels of interest in green
-	// OpenCV create an output window
-	if (showImg)
-	{
-		cvShowImage("Original", img);
-		cvShowImage("Processed", processed);
-		cvShowImage("Threshold", threshold);
-
-		// Wait until a key is pressed to continue... 	
-		tecla = cvWaitKey(0);
-	}
-
-	cvReleaseImage(&img);
-	cvDestroyWindow("Original");
-
-	cvReleaseImage(&processed);
-	cvDestroyWindow("Processed");
-
-	cvReleaseImage(&processed);
-	cvDestroyWindow("Threshold");
-}*/
 
 
 int performTraining()
@@ -542,10 +459,10 @@ int performTraining()
 	FILE *fp;
 	
 	// Open a text file to store the feature vectors
-	fp = fopen ((train ? "apprentissage-homer-bart.arff" : "validation-homer-bart.arff"),"w");
+	fp = fopen ((train ? tests[testCode].trainFileName : tests[testCode].validFileName),"w");
 
 	if(fp == NULL) {
-		perror((train ? "failed to open apprentissage-homer-bart.arff" : "failed to open validation-homer-bart.arff"));
+		perror((train ? "failed to open apprentissage...arff" : "failed to open validation...arff"));
 		return EXIT_FAILURE;
 	}
 
@@ -554,11 +471,18 @@ int performTraining()
 	fprintf(fp, "@attribute colorOrange numeric\n");
 	fprintf(fp, "@attribute colorWhite numeric\n");
 	fprintf(fp, "@attribute colorBlue numeric\n");
+	fprintf(fp, "@attribute colorPurple numeric\n");
 	fprintf(fp, "@attribute colorBrown numeric\n");
-	/*fprintf(fp, "@attribute colorRed numeric\n");
-	fprintf(fp, "@attribute colorLightBlue numeric\n");, Lisa, Other
-	fprintf(fp, "@attribute colorGreen numeric\n");*/
-	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
+	if (testCode > HB)
+	{
+		fprintf(fp, "@attribute colorRed numeric\n");
+		if (testCode > HBL)
+		{
+			fprintf(fp, "@attribute colorLightBlue numeric\n");
+			fprintf(fp, "@attribute colorGreen numeric\n");
+		}
+	}
+	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Other}\n\n");
 	fprintf(fp, "@data\n\n");
 
 	// Fill cFileName with zeros
@@ -569,7 +493,7 @@ int performTraining()
 
 	char* result;
 
-	for (ii = 0; ii < numCharacters; ii++)
+	for (ii = 0; ii < tests[testCode].numCharacters; ii++)
 	{
 		Character c = characters[ii];
 		numSamples = (train ? c.numTrain : c.numValid);
