@@ -19,11 +19,11 @@
 
 // DEFINES
 #define NUM_SAMPLES 100
-#define NUM_FEATURES 6
+#define NUM_FEATURES 8
 
 const bool train = true;		// Whether we use the training data set
-const bool showImg = true;		// Whether we display the images
-const int numCharacters = 3;	// Number of characters (2, 3, 8)
+const bool showImg = false;		// Whether we display the images
+const int numCharacters = 6;	// Number of characters (2, 3, 8)
 
 /*
   Holds information on each character in the training and validation sets
@@ -51,20 +51,12 @@ Character characters[8] =
 	Character("homer", "Homer", 62, 87),
 	Character("lisa", "Lisa", 33, 46),
 	Character("family", "Other", 27, 38),
-	Character("maggie", "Other", 30, 42),
-	Character("marge", "Other", 24, 34),
+	Character("maggie", "Maggie", 30, 42),
+	Character("marge", "Marge", 24, 34),
 	Character("other", "Other", 121, 170),
 	Character("school", "Other", 35, 49)
 };
 
-
-bool isRed(cv::Vec3b color)
-{
-	int blue = color[0];
-	int green = color[1];
-	int red = color[2];
-	return blue <= 5 && green <= 5 && red >= 250;
-}
 
 bool isWhite(cv::Vec3b color)
 {
@@ -104,6 +96,30 @@ bool isBlue(cv::Vec3b color)
 	return blue >= 128 && green <= 128 && red <= 128;
 }
 
+bool isRed(cv::Vec3b color)
+{
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
+	return blue <= 5 && green <= 5 && red >= 250;
+}
+
+bool isLightBlue(cv::Vec3b color)
+{
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
+	return blue <= 50 && green >= 135 && green <= 170 && red >= 200;
+}
+
+bool isGreen(cv::Vec3b color)
+{
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
+	return blue >= 145 && blue <= 160 && green >= 170 && green <= 200 && red <= 40;
+}
+
 void findLines(cv::Mat img) 
 {
 	std::vector<cv::Vec4i> lines;
@@ -119,7 +135,7 @@ void findLines(cv::Mat img)
 
 	//cv::Canny(mat, mat, 10, 100, 3);
 	//cv::dilate(mat, mat, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
-	cv::imshow("tes2t", mat);
+	//cv::imshow("tes2t", mat);
 	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 20, 5, 5);
 
 
@@ -162,10 +178,10 @@ void findLines(cv::Mat img)
 		}
 	}
 
-	imshow("corners_window", dst_norm_scaled);
+	//imshow("corners_window", dst_norm_scaled);
 
-	cv::imshow("test", newImg);
-	cv::waitKey(0);
+	//cv::imshow("test", newImg);
+	//cv::waitKey(0);
 }
 
 char* checkImage(char* fName, Character character)
@@ -194,6 +210,8 @@ char* checkImage(char* fName, Character character)
 	float fBlue;
 	float fBrown;
 	float fRed;
+	float fLightBlue;
+	float fGreen;
 
 	// OpenCV variables related to the image structure.
 	// IplImage structure contains several information of the image (See OpenCV manual).	
@@ -241,6 +259,8 @@ char* checkImage(char* fName, Character character)
 	fBlue = 0.0;
 	fBrown = 0.0;
 	fRed = 0.0;
+	fLightBlue = 0.0;
+	fGreen = 0.0;
 
 	findLines(img);
 
@@ -293,7 +313,7 @@ char* checkImage(char* fName, Character character)
 				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
-			// Detect and count the number of brown pixels
+			// Detect and count the number of red pixels
 			else if (isRed(color))
 			{
 				fRed++;
@@ -301,6 +321,25 @@ char* checkImage(char* fName, Character character)
 				color = cv::Vec3b(0, 255, 255);
 				processed.at<cv::Vec3b>(h, w) = color;
 			}
+
+			// Detect and count the number of light blue pixels
+			else if (isLightBlue(color))
+			{
+				fLightBlue++;
+
+				color = cv::Vec3b(128, 128, 0);
+				processed.at<cv::Vec3b>(h, w) = color;
+			}
+
+			// Detect and count the number of green pixels
+			else if (isGreen(color))
+			{
+				fGreen++;
+
+				color = cv::Vec3b(0, 128, 128);
+				processed.at<cv::Vec3b>(h, w) = color;
+			}
+
 		}
 	}
 
@@ -312,6 +351,8 @@ char* checkImage(char* fName, Character character)
 	fBlue = fBlue / (img.rows * img.cols);
 	fBrown = fBrown / (img.rows * img.cols);
 	fRed = fRed / (img.rows * img.cols);
+	fLightBlue = fLightBlue / (img.rows * img.cols);
+	fGreen = fGreen / (img.rows * img.cols);
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -322,6 +363,8 @@ char* checkImage(char* fName, Character character)
 	fVector[3] = fBlue;
 	fVector[4] = fBrown;
 	fVector[5] = fRed;
+	fVector[6] = fLightBlue;
+	fVector[7] = fGreen;
 
 	// And finally, store your features in a file
 
@@ -333,7 +376,7 @@ char* checkImage(char* fName, Character character)
 	}
 
 	// TODO Add 3, 4, 5 (new primitives)
-	sprintf(output, "%f,%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4], fVector[5], character.label);
+	sprintf(output, "%f,%f,%f,%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4], fVector[5], fVector[6], fVector[7], character.label);
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
@@ -344,7 +387,6 @@ char* checkImage(char* fName, Character character)
 
 		// Wait until a key is pressed to continue... 	
 		tecla = cv::waitKey(0);
-
 	}
 
 	img.release();
@@ -481,7 +523,9 @@ int performTraining()
 	fprintf(fp, "@attribute colorBlue numeric\n");
 	fprintf(fp, "@attribute colorBrown numeric\n");
 	fprintf(fp, "@attribute colorRed numeric\n");
-	fprintf(fp, "@attribute classe {Homer, Bart, Lisa}\n\n");
+	fprintf(fp, "@attribute colorLightBlue numeric\n");
+	fprintf(fp, "@attribute colorGreen numeric\n");
+	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Maggie, Marge, Other}\n\n");
 	fprintf(fp, "@data\n\n");
 
 	// Fill cFileName with zeros
