@@ -22,8 +22,8 @@
 #define NUM_FEATURES 8
 
 const bool train = true;		// Whether we use the training data set
-const bool showImg = false;		// Whether we display the images
-const int numCharacters = 6;	// Number of characters (2, 3, 8)
+const bool showImg = true;		// Whether we display the images
+const int numCharacters = 2;	// Number of characters (2, 3, 5)
 
 /*
   Holds information on each character in the training and validation sets
@@ -50,11 +50,11 @@ Character characters[8] =
 	Character("bart", "Bart", 80, 115),
 	Character("homer", "Homer", 62, 87),
 	Character("lisa", "Lisa", 33, 46),
+	Character("other", "Other", 121, 170),
+	Character("school", "Other", 35, 49),
 	Character("family", "Other", 27, 38),
 	Character("maggie", "Maggie", 30, 42),
-	Character("marge", "Marge", 24, 34),
-	Character("other", "Other", 121, 170),
-	Character("school", "Other", 35, 49)
+	Character("marge", "Marge", 24, 34)
 };
 
 
@@ -85,6 +85,14 @@ bool isOrange(cv::Vec3b color)
 	int green = color[1];
 	int red = color[2];
 	return blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255;
+}
+
+bool isYellow(cv::Vec3b color)
+{
+	int blue = color[0];
+	int green = color[1];
+	int red = color[2];
+	return blue <= 11 && green >= 180 && green <= 200 && red >= 230 && red <= 255;
 }
 
 bool isBlue(cv::Vec3b color)
@@ -212,18 +220,13 @@ char* checkImage(char* fName, Character character)
 	float fRed;
 	float fLightBlue;
 	float fGreen;
+	float fYellow;
 
-	// OpenCV variables related to the image structure.
-	// IplImage structure contains several information of the image (See OpenCV manual).	
 	cv::Mat img;
 	cv::Mat processed;
 	cv::Mat threshold;
-
-	// OpenCV variable that stores the image width and height
-	//CvSize tam;
-
-	// OpenCV variable that stores a pixel value
-	//CvScalar element;
+	cv::Mat gray;
+	cv::Mat bw;
 
 	// Fill fVector with zeros
 	
@@ -239,19 +242,31 @@ char* checkImage(char* fName, Character character)
 	// 0  - Load a 1-channel image (gray level)
 	// -1 - Load the image as it is  (depends on the file)
 
-	img = cv::imread(fName, -1);
-
-	// Gets the image size (width, height) 'img' 
-	//tam = cvGetSize(img);
-
-	// Creates a header and allocates memory (tam) to store a copy of the original image.
-	// 1 - gray level image
-	// 3 - color image	
-	// processed = cvCreateImage( tam, IPL_DEPTH_8U, 3);
+	img = cv::imread(fName, 1);
 
 	// Make a image clone and store it at processed and threshold
 	processed = img.clone();
 	threshold = img.clone();
+	cvtColor(img, gray, CV_BGR2GRAY);
+	cv::threshold(gray, bw, 230, 255, CV_THRESH_BINARY);
+
+	/// Reduce the noise so we avoid false circle detection
+	cv::GaussianBlur(gray, gray, cv::Size(9, 9), 2, 2);
+
+	cv::vector<cv::Vec3f> circles;
+
+	/// Apply the Hough Transform to find the circles
+	cv::HoughCircles(bw, circles, CV_HOUGH_GRADIENT, 1, bw.rows / 8, 200, 100, 0, 0);
+
+	for (size_t i = 0; i < circles.size(); i++)
+	{ 
+		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+		int radius = cvRound(circles[i][2]);
+		// circle center
+		cv::circle(processed, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
+		// circle outline
+		cv::circle(processed, center, radius, cv::Scalar(0, 0, 255), 3, 8, 0);
+	}
 
 	// Initialize variables with zero 
 	fOrange = 0.0;
@@ -261,6 +276,7 @@ char* checkImage(char* fName, Character character)
 	fRed = 0.0;
 	fLightBlue = 0.0;
 	fGreen = 0.0;
+	fYellow = 0.0;
 
 	findLines(img);
 
@@ -279,8 +295,8 @@ char* checkImage(char* fName, Character character)
 			{
 				fOrange++;
 
-				color = cv::Vec3b(128, 128, 128);
-				processed.at<cv::Vec3b>(h, w) = color;
+				/*color = cv::Vec3b(128, 128, 128);
+				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of white pixels (just a dummy feature...)
@@ -289,8 +305,8 @@ char* checkImage(char* fName, Character character)
 			{
 				fWhite++;
 
-				color = cv::Vec3b(0, 255, 0);
-				processed.at<cv::Vec3b>(h, w) = color;
+				/*color = cv::Vec3b(0, 255, 0);
+				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Here you can add your own features....... Good luck
@@ -300,8 +316,8 @@ char* checkImage(char* fName, Character character)
 			{
 				fBlue++;
 
-				color = cv::Vec3b(255, 0, 255);
-				processed.at<cv::Vec3b>(h, w) = color;
+				/*color = cv::Vec3b(255, 0, 255);
+				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of brown pixels
@@ -309,8 +325,8 @@ char* checkImage(char* fName, Character character)
 			{
 				fBrown++;
 
-				color = cv::Vec3b(255, 255, 0);
-				processed.at<cv::Vec3b>(h, w) = color;
+				/*color = cv::Vec3b(255, 255, 0);
+				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of red pixels
@@ -318,8 +334,8 @@ char* checkImage(char* fName, Character character)
 			{
 				fRed++;
 
-				color = cv::Vec3b(0, 255, 255);
-				processed.at<cv::Vec3b>(h, w) = color;
+				/*color = cv::Vec3b(0, 255, 255);
+				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of light blue pixels
@@ -327,8 +343,8 @@ char* checkImage(char* fName, Character character)
 			{
 				fLightBlue++;
 
-				color = cv::Vec3b(128, 128, 0);
-				processed.at<cv::Vec3b>(h, w) = color;
+				/*color = cv::Vec3b(128, 128, 0);
+				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of green pixels
@@ -336,7 +352,13 @@ char* checkImage(char* fName, Character character)
 			{
 				fGreen++;
 
-				color = cv::Vec3b(0, 128, 128);
+				/*color = cv::Vec3b(0, 128, 128);
+				processed.at<cv::Vec3b>(h, w) = color;*/
+			}
+			else if (isYellow(color))
+			{
+				fYellow++;
+				color = cv::Vec3b(0, 0, 255);
 				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
@@ -346,13 +368,17 @@ char* checkImage(char* fName, Character character)
 	// Lets make our counting somewhat independent on the image size...
 	// Compute the percentage of pixels of a given colour.
 	// Normalize the feature by the image size
-	fOrange = fOrange / (img.rows * img.cols);
-	fWhite = fWhite / (img.rows * img.cols);
-	fBlue = fBlue / (img.rows * img.cols);
-	fBrown = fBrown / (img.rows * img.cols);
-	fRed = fRed / (img.rows * img.cols);
-	fLightBlue = fLightBlue / (img.rows * img.cols);
-	fGreen = fGreen / (img.rows * img.cols);
+
+	//float normalizer = (img.rows * img.cols);
+	float normalizer = fYellow;
+
+	fOrange = fOrange / normalizer;
+	fWhite = fWhite / normalizer;
+	fBlue = fBlue / normalizer;
+	fBrown = fBrown / normalizer;
+	fRed = fRed / normalizer;
+	fLightBlue = fLightBlue / normalizer;
+	fGreen = fGreen / normalizer;
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -378,27 +404,33 @@ char* checkImage(char* fName, Character character)
 	// TODO Add 3, 4, 5 (new primitives)
 	sprintf(output, "%f,%f,%f,%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4], fVector[5], fVector[6], fVector[7], character.label);
 
+
+	
+
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
 	if (showImg)
 	{
 		cv::imshow("Original", img);
 		cv::imshow("Processed", processed);
+		//cv::imshow("BW", bw);
 
 		// Wait until a key is pressed to continue... 	
 		tecla = cv::waitKey(0);
 	}
 
-	img.release();
+	/*img.release();
 	processed.release();
 	threshold.release();
+	gray.release();
+	bw.release();*/
 
 	cv::destroyAllWindows();
 
 	return output;
 }
 
-void checkCircles(char* fName)
+/*void checkCircles(char* fName)
 {
 	// Variable store pressed key
 	int tecla;
@@ -447,7 +479,7 @@ void checkCircles(char* fName)
 	//cvFilter2D(gray, threshold, &kernel_, cvPoint(-1, -1));
 
 	
-	/*
+	///////
 	CvMemStorage* storage = cvCreateMemStorage(0);
 	CvSeq* results = cvHoughCircles(
 		threshold,
@@ -457,9 +489,9 @@ void checkCircles(char* fName)
 		threshold->width / 60,
 		100, 35, 1, 20
 		);
-	*/
+	///////
 
-	/*
+	///////
 	for (size_t i = 0; i < results->total; i++)
 	{
 		float* p = (float*)cvGetSeqElem(results, i);
@@ -473,7 +505,7 @@ void checkCircles(char* fName)
 			2
 			);
 	}
-	*/
+	////////
 
 	// Finally, give a look at the original image and the image with the pixels of interest in green
 	// OpenCV create an output window
@@ -495,7 +527,7 @@ void checkCircles(char* fName)
 
 	cvReleaseImage(&processed);
 	cvDestroyWindow("Threshold");
-}
+}*/
 
 
 int performTraining()
@@ -525,7 +557,7 @@ int performTraining()
 	fprintf(fp, "@attribute colorRed numeric\n");
 	fprintf(fp, "@attribute colorLightBlue numeric\n");
 	fprintf(fp, "@attribute colorGreen numeric\n");
-	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Maggie, Marge, Other}\n\n");
+	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Other}\n\n");
 	fprintf(fp, "@data\n\n");
 
 	// Fill cFileName with zeros
