@@ -51,10 +51,10 @@ Character characters[8] =
 	Character("homer", "Homer", 62, 87),
 	Character("lisa", "Lisa", 33, 46),
 	Character("family", "Other", 27, 38),
-	Character("maggie", "Maggie", 30, 42),
-	Character("marge", "Marge", 24, 34),
 	Character("other", "Other", 121, 170),
-	Character("school", "Other", 35, 49)
+	Character("school", "Other", 35, 49),
+	Character("maggie", "Maggie", 30, 42),
+	Character("marge", "Marge", 24, 34)
 };
 
 
@@ -346,13 +346,14 @@ char* checkImage(char* fName, Character character)
 	// Lets make our counting somewhat independent on the image size...
 	// Compute the percentage of pixels of a given colour.
 	// Normalize the feature by the image size
-	fOrange = fOrange / (img.rows * img.cols);
+	int nWhite = fWhite;
+	fOrange = fOrange / ((img.rows * img.cols) - nWhite);
 	fWhite = fWhite / (img.rows * img.cols);
-	fBlue = fBlue / (img.rows * img.cols);
-	fBrown = fBrown / (img.rows * img.cols);
-	fRed = fRed / (img.rows * img.cols);
-	fLightBlue = fLightBlue / (img.rows * img.cols);
-	fGreen = fGreen / (img.rows * img.cols);
+	fBlue = fBlue / ((img.rows * img.cols) - nWhite);
+	fBrown = fBrown / ((img.rows * img.cols) - nWhite);
+	fRed = fRed / ((img.rows * img.cols) - nWhite);
+	fLightBlue = fLightBlue / ((img.rows * img.cols) - nWhite);
+	fGreen = fGreen / ((img.rows * img.cols) - nWhite);
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -525,7 +526,7 @@ int performTraining()
 	fprintf(fp, "@attribute colorRed numeric\n");
 	fprintf(fp, "@attribute colorLightBlue numeric\n");
 	fprintf(fp, "@attribute colorGreen numeric\n");
-	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Maggie, Marge, Other}\n\n");
+	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Other}\n\n");
 	fprintf(fp, "@data\n\n");
 
 	// Fill cFileName with zeros
