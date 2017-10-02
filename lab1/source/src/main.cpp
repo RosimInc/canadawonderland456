@@ -22,7 +22,7 @@
 #define NUM_FEATURES 8
 
 const bool train = true;		// Whether we use the training data set
-const bool showImg = true;		// Whether we display the images
+const bool showImg = false;		// Whether we display the images
 const int numCharacters = 2;	// Number of characters (2, 3, 5)
 
 /*
@@ -190,6 +190,11 @@ void findLines(cv::Mat img)
 
 	//cv::imshow("test", newImg);
 	//cv::waitKey(0);
+}
+
+float normalize(float val, float fYellow)
+{
+	return val / (val + fYellow + 1);
 }
 
 char* checkImage(char* fName, Character character)
@@ -366,15 +371,15 @@ char* checkImage(char* fName, Character character)
 	}
 
 	//float normalizer = (img.rows * img.cols);
-	float normalizer = fYellow;
+	float normalizer = fYellow + 1;
 
-	fOrange = fOrange / normalizer;
-	fWhite = fWhite / normalizer;
-	fBlue = fBlue / normalizer;
-	fBrown = fBrown / normalizer;
-	fRed = fRed / normalizer;
-	fLightBlue = fLightBlue / normalizer;
-	fGreen = fGreen / normalizer;
+	fOrange = normalize(fOrange, fYellow);
+	fWhite = normalize(fWhite, fYellow);
+	fBlue = normalize(fBlue, fYellow);
+	fBrown = normalize(fBrown, fYellow);
+	fRed = normalize(fRed, fYellow);
+	fLightBlue = normalize(fLightBlue, fYellow);
+	fGreen = normalize(fGreen, fYellow);
 
 	// Store the feature value in the columns of the feature (matrix) vector
 	fVector[1] = fOrange;
@@ -397,8 +402,8 @@ char* checkImage(char* fName, Character character)
 		output[ii] = '\0';
 	}
 
-	// TODO Add 3, 4, 5 (new primitives)
-	sprintf(output, "%f,%f,%f,%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4], fVector[5], fVector[6], fVector[7], character.label);
+	// TODO Add 3, 4, 5 (new primitives) --- %f,%f,%f,
+	sprintf(output, "%f,%f,%f,%f,%s", fVector[1], fVector[2], fVector[3], fVector[4]/*, fVector[5], fVector[6], fVector[7]*/, character.label);
 
 
 	
@@ -550,10 +555,10 @@ int performTraining()
 	fprintf(fp, "@attribute colorWhite numeric\n");
 	fprintf(fp, "@attribute colorBlue numeric\n");
 	fprintf(fp, "@attribute colorBrown numeric\n");
-	fprintf(fp, "@attribute colorRed numeric\n");
-	fprintf(fp, "@attribute colorLightBlue numeric\n");
-	fprintf(fp, "@attribute colorGreen numeric\n");
-	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Other}\n\n");
+	/*fprintf(fp, "@attribute colorRed numeric\n");
+	fprintf(fp, "@attribute colorLightBlue numeric\n");, Lisa, Other
+	fprintf(fp, "@attribute colorGreen numeric\n");*/
+	fprintf(fp, "@attribute classe {Homer, Bart}\n\n");
 	fprintf(fp, "@data\n\n");
 
 	// Fill cFileName with zeros
