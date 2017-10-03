@@ -1,35 +1,30 @@
-/**
-* GTI770 - Systemes intelligents et apprentissage machine
-* Alessandro L. Koerich
-* alessandro.koerich@etsmtl.ca
-* 2017
-*
-* EXEMPLE 1: Feature extraction from RGB images
-*                       Simpsons Family
-**/
-
+// Constants for the different tests
 #define HB 0
 #define HBL 1
 #define HBLO 2
 
 // INCLUDES
-#include <cv.h> 			//OpenCV lib
-#include <cvaux.h>			//OpenCV lib
-#include <highgui.h>		//OpenCV lib
+#include <cv.h> 				// OpenCV lib
+#include <cvaux.h>				// OpenCV lib
+#include <highgui.h>			// OpenCV lib
 #include <stdio.h>	
 #include <math.h>
 #include <string>
 
-const bool train = true;		// Whether we use the training data set
-const bool showImg = false;		// Whether we display the images
-const int testCode = HB;			// Number of characters (2, 3, 5)
+const bool train = false;		// Whether we use the training data set
+const int testCode = HB;		// Test to perform HB, HBL, HBLO
+const bool showImg = false;		// Whether we should display the images
 
+/*
+ Holds information on the different tests that we can perform
+*/
 struct Test
 {
 	char* trainFileName;
 	char* validFileName;
 	int numCharacters;
 
+	/* Constructor */
 	Test(char* tFileName, char* vFileName, int numChars)
 	{
 		trainFileName = tFileName;
@@ -58,6 +53,16 @@ struct Character
 	}
 };
 
+Test tests[3] =
+{
+	// Homer - Bart
+	Test("EquipeC-Apprentissage-HB.arff", "EquipeC-Validation-HB.arff", 2),
+	// Homer - Bart - Lisa
+	Test("EquipeC-Apprentissage-HBL.arff", "EquipeC-Validation-HBL.arff", 3),
+	// Homer - Bart - Lisa - Others
+	Test("EquipeC-Apprentissage-HBLO.arff", "EquipeC-Validation-HBLO.arff", 5)
+};
+
 Character characters[8] =
 {
 	Character("bart", "Bart", 80, 115),
@@ -70,13 +75,7 @@ Character characters[8] =
 	Character("marge", "Marge", 24, 34)
 };
 
-Test tests[3] =
-{
-	Test("apprentissage-homer-bart.arff", "validation-homer-bart.arff", 2),
-	Test("apprentissage-homer-bart-lisa.arff", "validation-homer-bart-lisa.arff", 3),
-	Test("apprentissage-homer-bart-lisa-others.arff", "validation-homer-bart-lisa-others.arff", 5)
-};
-
+/* Detects white in a pixel */
 bool isWhite(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -85,11 +84,7 @@ bool isWhite(cv::Vec3b color)
 	return blue >= 253 && green >= 253 && red >= 253;
 }
 
-/*
- * TODO:
- * With this RGB range, we find that some Bart images have brown color. 
- * To lessen false positives, either combine brown and blue primitives or reduce the brown RGB range detection
- */
+/* Detects brown in a pixel */
 bool isBrown(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -98,6 +93,7 @@ bool isBrown(cv::Vec3b color)
 	return blue >= 95 && blue <= 135 && green >= 150 && green <= 185 && red >= 180 && red <= 210;
 }
 
+/* Detects orange in a pixel */
 bool isOrange(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -106,6 +102,7 @@ bool isOrange(cv::Vec3b color)
 	return blue >= 11 && blue <= 22 && green >= 85 && green <= 105 && red >= 240 && red <= 255;
 }
 
+/* Detects orange in a pixel */
 bool isYellow(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -114,6 +111,7 @@ bool isYellow(cv::Vec3b color)
 	return blue <= 70 && green >= 180 && green <= 220 && red >= 230 && red <= 255;
 }
 
+/* Detects blue in a pixel */
 bool isBlue(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -122,6 +120,7 @@ bool isBlue(cv::Vec3b color)
 	return blue >= 150 && blue <= 190 && green >= 85 && green <= 130 && red <= 90;
 }
 
+/* Detects purple in a pixel */
 bool isPurple(cv::Vec3b color) 
 {
 	int blue = color[0];
@@ -130,6 +129,7 @@ bool isPurple(cv::Vec3b color)
 	return blue >= 50 && blue <= 150 && green >= 0 && green <= 50 && red <= 50;
 }
 
+/* Detects red in a pixel */
 bool isRed(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -138,6 +138,7 @@ bool isRed(cv::Vec3b color)
 	return blue <= 5 && green <= 5 && red >= 250;
 }
 
+/* Detects light blue in a pixel */
 bool isLightBlue(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -146,6 +147,7 @@ bool isLightBlue(cv::Vec3b color)
 	return blue <= 50 && green >= 135 && green <= 170 && red >= 200;
 }
 
+/* Detects green in a pixel */
 bool isGreen(cv::Vec3b color)
 {
 	int blue = color[0];
@@ -159,9 +161,7 @@ void findLines(cv::Mat img)
 	std::vector<cv::Vec4i> lines;
 	lines.reserve(10000);
 	cv::Mat mat = img.clone();
-	// detect the lines
-	//IplImage *gray = NULL;
-	//gray = cvLoadImage(fName, CV_LOAD_IMAGE_GRAYSCALE);
+	
 	// TODO: Test cornerHarris
 
 	cv::cvtColor(mat, mat, cv::COLOR_RGB2GRAY);
@@ -218,11 +218,26 @@ void findLines(cv::Mat img)
 	//cv::waitKey(0);
 }
 
+/* Normalizes a pixel count into a ratio */
 float normalize(float val, float fYellow)
 {
+	// Ratio of numColor / (numColor + numYellow + 1)
+	// The +1 was added to prevent division by zero
 	return val / (val + fYellow + 1);
 }
 
+/* Gets the maximum out of three numbers */
+float getMax(float val1, float val2, float val3)
+{
+	float max = val1;
+	if (val2 > max)
+		max = val2;
+	if (val3 > max)
+		max = val3;
+	return max;
+}
+
+/* Counts color ratios in an image to detect primitives */
 char* checkImage(char* fName, Character character)
 {
 	// Variable store pressed key
@@ -249,12 +264,11 @@ char* checkImage(char* fName, Character character)
 	float fLightBlue;
 	float fGreen;
 	float fYellow;
+	float fMax;
 
+	// Images
 	cv::Mat img;
 	cv::Mat processed;
-	cv::Mat threshold;
-	cv::Mat gray;
-	cv::Mat bw;
 
 	// Fill fVector with zeros
 	
@@ -269,27 +283,6 @@ char* checkImage(char* fName, Character character)
 
 	// Make a image clone and store it at processed and threshold
 	processed = img.clone();
-	threshold = img.clone();
-	/*cvtColor(img, gray, CV_BGR2GRAY);
-	cv::threshold(gray, bw, 230, 255, CV_THRESH_BINARY);
-
-	/// Reduce the noise so we avoid false circle detection
-	cv::GaussianBlur(gray, gray, cv::Size(9, 9), 2, 2);
-
-	cv::vector<cv::Vec3f> circles;
-
-	/// Apply the Hough Transform to find the circles
-	cv::HoughCircles(bw, circles, CV_HOUGH_GRADIENT, 1, bw.rows / 8, 200, 100, 0, 0);
-
-	for (size_t i = 0; i < circles.size(); i++)
-	{ 
-		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-		int radius = cvRound(circles[i][2]);
-		// circle center
-		cv::circle(processed, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
-		// circle outline
-		cv::circle(processed, center, radius, cv::Scalar(0, 0, 255), 3, 8, 0);
-	}*/
 
 	// Initialize variables with zero 
 	fOrange = 0.0;
@@ -301,6 +294,7 @@ char* checkImage(char* fName, Character character)
 	fLightBlue = 0.0;
 	fGreen = 0.0;
 	fYellow = 0.0;
+	fMax = 0.0;
 
 	findLines(img);
 
@@ -311,29 +305,17 @@ char* checkImage(char* fName, Character character)
 		{
 			cv::Vec3b color = img.at<cv::Vec3b>(h, w);
 
-			// Here starts the feature extraction....
-
 			// Detect and count the number of orange pixels
-			// Verify if the pixels have a given value ( Orange, defined as R[240-255], G[85-105], B[11-22] ). If so, count it...
 			if (isOrange(color))
 			{
 				fOrange++;
-
-				/*color = cv::Vec3b(128, 128, 128);
-				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of white pixels (just a dummy feature...)
-			// Verify if the pixels have a given value ( White, defined as R[253-255], G[253-255], B[253-255] ). If so, count it...
 			else if (isWhite(color))
 			{
 				fWhite++;
-
-				/*color = cv::Vec3b(0, 255, 0);
-				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
-
-			// Here you can add your own features....... Good luck
 
 			// Detect and count the number of blue pixels
 			else if (isBlue(color))
@@ -344,7 +326,7 @@ char* checkImage(char* fName, Character character)
 				processed.at<cv::Vec3b>(h, w) = color;
 			}
 
-			// Detect and count the number of blue pixels
+			// Detect and count the number of purple pixels
 			else if (isPurple(color))
 			{
 				fPurple++;
@@ -357,37 +339,27 @@ char* checkImage(char* fName, Character character)
 			else if (isBrown(color))
 			{
 				fBrown++;
-
-				/*color = cv::Vec3b(255, 255, 0);
-				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of red pixels
 			else if (isRed(color))
 			{
 				fRed++;
-
-				/*color = cv::Vec3b(0, 255, 255);
-				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of light blue pixels
 			else if (isLightBlue(color))
 			{
 				fLightBlue++;
-
-				/*color = cv::Vec3b(128, 128, 0);
-				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
 
 			// Detect and count the number of green pixels
 			else if (isGreen(color))
 			{
 				fGreen++;
-
-				/*color = cv::Vec3b(0, 128, 128);
-				processed.at<cv::Vec3b>(h, w) = color;*/
 			}
+
+			// Detect and count the number of yellow pixels
 			else if (isYellow(color))
 			{
 				fYellow++;
@@ -409,6 +381,7 @@ char* checkImage(char* fName, Character character)
 	fRed = normalize(fRed, fYellow);
 	fLightBlue = normalize(fLightBlue, fYellow);
 	fGreen = normalize(fGreen, fYellow);
+	fMax = getMax(fOrange, fBrown, fRed);
 
 	// And finally, store your features in a file
 
@@ -424,7 +397,7 @@ char* checkImage(char* fName, Character character)
 	else if(testCode == HBL)
 		sprintf(output, "%f,%f,%f,%f,%f,%f,%s", fOrange, fWhite, fBlue, fPurple, fBrown, fRed, character.label);
 	else
-		sprintf(output, "%f,%f,%f,%f,%f,%f,%f,%f,%s", fOrange, fWhite, fBlue, fPurple, fBrown, fRed, fLightBlue, fGreen, character.label);
+		sprintf(output, "%f,%f,%f,%f,%f,%f,%f,%s", fOrange, fWhite, fBlue, fPurple, fBrown, fRed, fMax, character.label);
 		
 	
 
@@ -447,7 +420,7 @@ char* checkImage(char* fName, Character character)
 	return output;
 }
 
-
+/* For each image, performs data processing */
 int performTraining()
 {
 	int ii;
@@ -467,19 +440,26 @@ int performTraining()
 	}
 
 	// File initialization for Weka
-	fprintf(fp, "@relation Homer-Bart\n\n");
+
+	if(testCode == HB)
+		fprintf(fp, "@relation Homer-Bart\n\n");
+	else if (testCode == HBL)
+		fprintf(fp, "@relation Homer-Bart-Lisa\n\n");
+	else if (testCode == HBLO)
+		fprintf(fp, "@relation Homer-Bart-Lisa-Others\n\n");
+
 	fprintf(fp, "@attribute colorOrange numeric\n");
 	fprintf(fp, "@attribute colorWhite numeric\n");
 	fprintf(fp, "@attribute colorBlue numeric\n");
 	fprintf(fp, "@attribute colorPurple numeric\n");
 	fprintf(fp, "@attribute colorBrown numeric\n");
+	
 	if (testCode > HB)
 	{
 		fprintf(fp, "@attribute colorRed numeric\n");
 		if (testCode > HBL)
 		{
-			fprintf(fp, "@attribute colorLightBlue numeric\n");
-			fprintf(fp, "@attribute colorGreen numeric\n");
+			fprintf(fp, "@attribute maxDeterminant numeric\n");
 		}
 	}
 	fprintf(fp, "@attribute classe {Homer, Bart, Lisa, Other}\n\n");
@@ -498,12 +478,14 @@ int performTraining()
 		Character c = characters[ii];
 		numSamples = (train ? c.numTrain : c.numValid);
 
-		jj = (train ? 1 : c.numTrain + 1);
-		for (; jj <= numSamples; jj++)
+		for (jj = (train ? 1 : c.numTrain + 1); jj <= numSamples; jj++)
 		{
 			sprintf(cFileName, "%s/%s%03d.bmp", (train ? "Train" : "Valid"), c.name, jj);
+			
+			// Send image for processing
 			result = checkImage(cFileName, c);
 
+			// Print results to screen and file
 			printf("%s\n", result);
 			fprintf(fp, "%s\n", result);
 		}
@@ -514,15 +496,10 @@ int performTraining()
 	return 0;
 } 
 
-
-// MAIN
+/* Main method */
 int main(int argc, char** argv)
 {
-	int result = 0;
-
-	//checkCircles("Train/Lisa002.bmp");
-
-	result = performTraining();
+	int result = performTraining();
 
 	return result;
 }

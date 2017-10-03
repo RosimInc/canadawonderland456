@@ -1,4 +1,4 @@
-@relation Homer-Bart
+@relation Homer-Bart-Lisa
 
 @attribute colorOrange numeric
 @attribute colorWhite numeric
