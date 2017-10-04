@@ -156,68 +156,6 @@ bool isGreen(cv::Vec3b color)
 	return blue >= 145 && blue <= 160 && green >= 170 && green <= 200 && red <= 40;
 }
 
-void findLines(cv::Mat img) 
-{
-	std::vector<cv::Vec4i> lines;
-	lines.reserve(10000);
-	cv::Mat mat = img.clone();
-	
-	// TODO: Test cornerHarris
-
-	cv::cvtColor(mat, mat, cv::COLOR_RGB2GRAY);
-	cv::threshold(mat, mat, 15, 255, cv::THRESH_BINARY_INV);
-
-	//cv::Canny(mat, mat, 10, 100, 3);
-	//cv::dilate(mat, mat, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
-	//cv::imshow("tes2t", mat);
-	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 20, 5, 5);
-
-
-	cv::Mat newImg = cv::Mat(img.rows, img.cols, CV_8U, cv::Scalar(255));
-
-	printf("Size %d\n", lines.size());
-	for (size_t i = 0; i < lines.size(); i++)
-	{
-		cv::Vec4i l = lines[i];
-		// draw the lines
-
-		cv::Point p1, p2;
-		p1 = cv::Point(l[0], l[1]);
-		p2 = cv::Point(l[2], l[3]);
-
-		cv::line(newImg, p1, p2, 0, 1, 8, 0);
-		//printf("Point(%d, %d) - Point(%d, %d)\n", l[0], l[1], l[2], l[3]);
-     }
-
-	int thresh = 200;
-	cv::Mat dst, dst_norm, dst_norm_scaled;
-	dst = cv::Mat::zeros(newImg.size(), CV_32FC1);
-
-	// Detecting corners
-	cv::cornerHarris(mat, dst, 7, 5, 0.05, cv::BORDER_DEFAULT);
-
-	// Normalizing
-	cv::normalize(dst, dst_norm, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat());
-	cv::convertScaleAbs(dst_norm, dst_norm_scaled);
-
-	// Drawing a circle around corners
-	for (int j = 0; j < dst_norm.rows; j++)
-	{
-		for (int i = 0; i < dst_norm.cols; i++)
-		{
-			if ((int)dst_norm.at<float>(j, i) > thresh)
-			{
-				circle(dst_norm_scaled, cv::Point(i, j), 5, cv::Scalar(255,0,0), 1, 8, 0);
-			}
-		}
-	}
-
-	//imshow("corners_window", dst_norm_scaled);
-
-	//cv::imshow("test", newImg);
-	//cv::waitKey(0);
-}
-
 /* Normalizes a pixel count into a ratio */
 float normalize(float val, float fYellow)
 {
@@ -295,8 +233,6 @@ char* checkImage(char* fName, Character character)
 	fGreen = 0.0;
 	fYellow = 0.0;
 	fMax = 0.0;
-
-	findLines(img);
 
 	// Loop that reads each image pixel
 	for (h = 0; h < img.rows; h++) // rows
