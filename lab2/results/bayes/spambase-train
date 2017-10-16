@@ -1,0 +1,448 @@
+=== Run information ===
+
+Scheme:       weka.classifiers.bayes.NaiveBayes 
+Relation:     spam-dev-e16-weka.filters.supervised.instance.Resample-B1.0-S1-Z100.0-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.unsupervised.instance.RemovePercentage-P50.0
+Instances:    1380
+Attributes:   58
+              word_freq_make:
+              word_freq_address:
+              word_freq_all:
+              word_freq_3d:
+              word_freq_our:
+              word_freq_over:
+              word_freq_remove:
+              word_freq_internet:
+              word_freq_order:
+              word_freq_mail:
+              word_freq_receive:
+              word_freq_will:
+              word_freq_people:
+              word_freq_report:
+              word_freq_addresses:
+              word_freq_free:
+              word_freq_business:
+              word_freq_email:
+              word_freq_you:
+              word_freq_credit:
+              word_freq_your:
+              word_freq_font:
+              word_freq_000:
+              word_freq_money:
+              word_freq_hp:
+              word_freq_hpl:
+              word_freq_george:
+              word_freq_650:
+              word_freq_lab:
+              word_freq_labs:
+              word_freq_telnet:
+              word_freq_857:
+              word_freq_data:
+              word_freq_415:
+              word_freq_85:
+              word_freq_technology:
+              word_freq_1999:
+              word_freq_parts:
+              word_freq_pm:
+              word_freq_direct:
+              word_freq_cs:
+              word_freq_meeting:
+              word_freq_original:
+              word_freq_project:
+              word_freq_re:
+              word_freq_edu:
+              word_freq_table:
+              word_freq_conference:
+              char_freq_;:
+              char_freq_(:
+              char_freq_[:
+              char_freq_!:
+              char_freq_$:
+              char_freq_#:
+              capital_run_length_average:
+              capital_run_length_longest:
+              capital_run_length_total:
+              class
+Test mode:    user supplied test set:  size unknown (reading incrementally)
+
+=== Classifier model (full training set) ===
+
+Naive Bayes Classifier
+
+                                 Class
+Attribute                            1        0
+                                (0.51)   (0.49)
+================================================
+word_freq_make:
+  mean                           0.1579   0.0777
+  std. dev.                      0.3084   0.3351
+  weight sum                        698      682
+  precision                      0.0377   0.0377
+
+word_freq_address:
+  mean                           0.1703   0.2711
+  std. dev.                        0.37   1.8117
+  weight sum                        698      682
+  precision                      0.1487   0.1487
+
+word_freq_all:
+  mean                           0.3965   0.2414
+  std. dev.                       0.497    0.556
+  weight sum                        698      682
+  precision                      0.0263   0.0263
+
+word_freq_3d:
+  mean                           0.1272        0
+  std. dev.                       1.425   0.3288
+  weight sum                        698      682
+  precision                       1.973    1.973
+
+word_freq_our:
+  mean                           0.4931   0.1551
+  std. dev.                      0.6698   0.4986
+  weight sum                        698      682
+  precision                      0.0377   0.0377
+
+word_freq_over:
+  mean                            0.171   0.0356
+  std. dev.                       0.345    0.141
+  weight sum                        698      682
+  precision                       0.027    0.027
+
+word_freq_remove:
+  mean                           0.2493   0.0145
+  std. dev.                      0.5034   0.1734
+  weight sum                        698      682
+  precision                      0.0495   0.0495
+
+word_freq_internet:
+  mean                           0.1701   0.0323
+  std. dev.                      0.3697   0.1694
+  weight sum                        698      682
+  precision                      0.0367   0.0367
+
+word_freq_order:
+  mean                           0.1626   0.0404
+  std. dev.                      0.3413   0.2002
+  weight sum                        698      682
+  precision                      0.0355   0.0355
+
+word_freq_mail:
+  mean                           0.3475   0.1337
+  std. dev.                       0.566   0.4418
+  weight sum                        698      682
+  precision                      0.0265   0.0265
+
+word_freq_receive:
+  mean                           0.1133   0.0139
+  std. dev.                      0.2438   0.1051
+  weight sum                        698      682
+  precision                       0.029    0.029
+
+word_freq_will:
+  mean                           0.5782   0.4957
+  std. dev.                      0.7509   0.8977
+  weight sum                        698      682
+  precision                      0.0314   0.0314
+
+word_freq_people:
+  mean                           0.1375   0.0632
+  std. dev.                      0.2979    0.254
+  weight sum                        698      682
+  precision                      0.0275   0.0275
+
+word_freq_report:
+  mean                           0.0608   0.0211
+  std. dev.                      0.2495   0.1944
+  weight sum                        698      682
+  precision                      0.0639   0.0639
+
+word_freq_addresses:
+  mean                           0.0977   0.0149
+  std. dev.                      0.3405   0.1513
+  weight sum                        698      682
+  precision                      0.0372   0.0372
+
+word_freq_free:
+  mean                           0.4698   0.0419
+  std. dev.                      0.8335   0.2191
+  weight sum                        698      682
+  precision                        0.05     0.05
+
+word_freq_business:
+  mean                            0.275   0.0341
+  std. dev.                       0.602   0.1742
+  weight sum                        698      682
+  precision                      0.0325   0.0325
+
+word_freq_email:
+  mean                           0.3402   0.0816
+  std. dev.                      0.6624   0.3399
+  weight sum                        698      682
+  precision                      0.0361   0.0361
+
+word_freq_you:
+  mean                           2.2729   1.3546
+  std. dev.                       1.774   2.0096
+  weight sum                        698      682
+  precision                      0.0374   0.0374
+
+word_freq_credit:
+  mean                           0.1566   0.0022
+  std. dev.                      0.6043   0.0316
+  weight sum                        698      682
+  precision                      0.1136   0.1136
+
+word_freq_your:
+  mean                            1.347   0.3667
+  std. dev.                      1.1982   0.8413
+  weight sum                        698      682
+  precision                      0.0288   0.0288
+
+word_freq_font:
+  mean                           0.2741   0.0643
+  std. dev.                      1.6027   0.7513
+  weight sum                        698      682
+  precision                      0.5344   0.5344
+
+word_freq_000:
+  mean                           0.2263   0.0042
+  std. dev.                      0.4653   0.0499
+  weight sum                        698      682
+  precision                      0.0313   0.0313
+
+word_freq_money:
+  mean                            0.245   0.0258
+  std. dev.                      0.8611    0.386
+  weight sum                        698      682
+  precision                      0.1374   0.1374
+
+word_freq_hp:
+  mean                           0.0239   0.9721
+  std. dev.                      0.2163    2.338
+  weight sum                        698      682
+  precision                       0.119    0.119
+
+word_freq_hpl:
+  mean                           0.0124   0.4448
+  std. dev.                      0.1197   1.0754
+  weight sum                        698      682
+  precision                       0.071    0.071
+
+word_freq_george:
+  mean                           0.0009   1.2169
+  std. dev.                      0.0505   4.1195
+  weight sum                        698      682
+  precision                       0.303    0.303
+
+word_freq_650:
+  mean                           0.0195   0.1932
+  std. dev.                      0.3241   0.6635
+  weight sum                        698      682
+  precision                      0.1082   0.1082
+
+word_freq_lab:
+  mean                           0.0005   0.1732
+  std. dev.                      0.0287   0.8058
+  weight sum                        698      682
+  precision                      0.1724   0.1724
+
+word_freq_labs:
+  mean                           0.0073   0.1933
+  std. dev.                      0.0944   0.6137
+  weight sum                        698      682
+  precision                       0.061    0.061
+
+word_freq_telnet:
+  mean                           0.0035   0.1158
+  std. dev.                      0.0417   0.4691
+  weight sum                        698      682
+  precision                      0.0933   0.0933
+
+word_freq_857:
+  mean                           0.0014   0.0899
+  std. dev.                      0.0254   0.4588
+  weight sum                        698      682
+  precision                       0.119    0.119
+
+word_freq_data:
+  mean                           0.0174   0.1316
+  std. dev.                      0.1272   0.6173
+  weight sum                        698      682
+  precision                      0.1194   0.1194
+
+word_freq_415:
+  mean                           0.0003   0.0911
+  std. dev.                      0.0189   0.4623
+  weight sum                        698      682
+  precision                      0.1133   0.1133
+
+word_freq_85:
+  mean                           0.0066   0.1763
+  std. dev.                      0.0465      0.6
+  weight sum                        698      682
+  precision                      0.0635   0.0635
+
+word_freq_technology:
+  mean                           0.0413   0.1316
+  std. dev.                      0.1682    0.459
+  weight sum                        698      682
+  precision                      0.0603   0.0603
+
+word_freq_1999:
+  mean                           0.0331    0.195
+  std. dev.                      0.2145   0.5214
+  weight sum                        698      682
+  precision                      0.0478   0.0478
+
+word_freq_parts:
+  mean                           0.0043   0.0183
+  std. dev.                      0.0717   0.2664
+  weight sum                        698      682
+  precision                        0.43     0.43
+
+word_freq_pm:
+  mean                           0.0129   0.0959
+  std. dev.                      0.0974   0.4302
+  weight sum                        698      682
+  precision                      0.0769   0.0769
+
+word_freq_direct:
+  mean                           0.0436    0.082
+  std. dev.                      0.1678    0.425
+  weight sum                        698      682
+  precision                       0.071    0.071
+
+word_freq_cs:
+  mean                                0   0.0528
+  std. dev.                      0.0476   0.3861
+  weight sum                        698      682
+  precision                      0.2856   0.2856
+
+word_freq_meeting:
+  mean                           0.0055   0.2472
+  std. dev.                      0.0476   1.0528
+  weight sum                        698      682
+  precision                      0.1754   0.1754
+
+word_freq_original:
+  mean                            0.006   0.0763
+  std. dev.                      0.0392   0.3077
+  weight sum                        698      682
+  precision                      0.0551   0.0551
+
+word_freq_project:
+  mean                           0.0044    0.173
+  std. dev.                      0.0524   0.9825
+  weight sum                        698      682
+  precision                      0.2777   0.2777
+
+word_freq_re:
+  mean                            0.117   0.4254
+  std. dev.                      0.2879   1.4624
+  weight sum                        698      682
+  precision                      0.1477   0.1477
+
+word_freq_edu:
+  mean                           0.0113   0.3121
+  std. dev.                      0.1244   1.5909
+  weight sum                        698      682
+  precision                      0.2722   0.2722
+
+word_freq_table:
+  mean                           0.0005    0.006
+  std. dev.                      0.0113   0.0582
+  weight sum                        698      682
+  precision                      0.0675   0.0675
+
+word_freq_conference:
+  mean                           0.0009   0.0368
+  std. dev.                      0.0361   0.3033
+  weight sum                        698      682
+  precision                      0.2164   0.2164
+
+char_freq_;:
+  mean                           0.0189   0.0566
+  std. dev.                      0.0795   0.3432
+  weight sum                        698      682
+  precision                      0.0307   0.0307
+
+char_freq_(:
+  mean                           0.1085   0.1544
+  std. dev.                      0.1513   0.2481
+  weight sum                        698      682
+  precision                      0.0057   0.0057
+
+char_freq_[:
+  mean                           0.0075   0.0262
+  std. dev.                      0.0376   0.1698
+  weight sum                        698      682
+  precision                      0.0323   0.0323
+
+char_freq_!:
+  mean                           0.5263    0.166
+  std. dev.                      0.7354   1.7723
+  weight sum                        698      682
+  precision                      0.0777   0.0777
+
+char_freq_$:
+  mean                           0.1931   0.0083
+  std. dev.                      0.3864   0.0827
+  weight sum                        698      682
+  precision                      0.0202   0.0202
+
+char_freq_#:
+  mean                           0.0694   0.0286
+  std. dev.                      0.2787   0.2971
+  weight sum                        698      682
+  precision                      0.0537   0.0537
+
+capital_run_length_average:
+  mean                          10.4957   2.5159
+  std. dev.                      55.678   9.6267
+  weight sum                        698      682
+  precision                      1.4455   1.4455
+
+capital_run_length_longest:
+  mean                         102.9509  16.3818
+  std. dev.                    200.6965  61.1185
+  weight sum                        698      682
+  precision                     13.1131  13.1131
+
+capital_run_length_total:
+  mean                          428.331 163.4488
+  std. dev.                     571.106 402.4103
+  weight sum                        698      682
+  precision                     11.7007  11.7007
+
+
+
+Time taken to build model: 0 seconds
+
+=== Evaluation on test set ===
+
+Time taken to test model on supplied test set: 0.05 seconds
+
+=== Summary ===
+
+Correctly Classified Instances        1112               80.5797 %
+Incorrectly Classified Instances       268               19.4203 %
+Kappa statistic                          0.6102
+Mean absolute error                      0.1945
+Root mean squared error                  0.4385
+Relative absolute error                 38.8978 %
+Root relative squared error             87.7138 %
+Total Number of Instances             1380     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0,951    0,343    0,739      0,951    0,832      0,638    0,938     0,927     1
+                 0,657    0,049    0,929      0,657    0,770      0,638    0,935     0,911     0
+Weighted Avg.    0,806    0,198    0,833      0,806    0,801      0,638    0,937     0,919     
+
+=== Confusion Matrix ===
+
+   a   b   <-- classified as
+ 664  34 |   a = 1
+ 234 448 |   b = 0
+
