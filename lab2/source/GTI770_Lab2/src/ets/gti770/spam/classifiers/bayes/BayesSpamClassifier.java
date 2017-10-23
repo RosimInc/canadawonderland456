@@ -10,9 +10,11 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 	{
 		int[] results = new int[inputData.size()];
 		
-		// TODO Bayes - Train data
+		// JS Bayes - Train data
 		
-		// TODO Bayes - Classify input data
+		// JS Bayes - Classify input data
+
+		// JS Bayes - Make sure all new classes are package
 		
 		return results;
 	}

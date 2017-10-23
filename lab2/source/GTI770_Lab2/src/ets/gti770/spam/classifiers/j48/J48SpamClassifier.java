@@ -10,9 +10,11 @@ public class J48SpamClassifier implements ISpamClassifierStrategy
 	{
 		int[] results = new int[inputData.size()];
 		
-		// TODO J48 - Train data
+		// SR J48 - Train data
 		
-		// TODO J48 - Classify input data
+		// SR J48 - Classify input data
+		
+		// SR J48 - Make sure all new classes are package
 		
 		return results;
 	}
