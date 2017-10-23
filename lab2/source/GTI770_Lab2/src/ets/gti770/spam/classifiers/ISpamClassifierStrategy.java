@@ -10,5 +10,5 @@ public interface ISpamClassifierStrategy
 	 * @param data The input data
 	 * @return The output results, as a list of 1s and 0s
 	 */
-	int[] classify(Instances data);
+	int[] classify(Instances trainData, Instances inputData);
 }

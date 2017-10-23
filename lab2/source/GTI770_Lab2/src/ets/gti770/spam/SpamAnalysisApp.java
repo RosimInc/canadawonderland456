@@ -2,10 +2,10 @@ package ets.gti770.spam;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import ets.gti770.spam.classifiers.BayesSpamClassifier;
-import ets.gti770.spam.classifiers.J48SpamClassifier;
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
-import ets.gti770.spam.classifiers.KNNSpamClassifier;
+import ets.gti770.spam.classifiers.bayes.BayesSpamClassifier;
+import ets.gti770.spam.classifiers.j48.J48SpamClassifier;
+import ets.gti770.spam.classifiers.knn.KNNSpamClassifier;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 
@@ -21,8 +21,9 @@ public class SpamAnalysisApp
 	
 	// Run options
 	private static final boolean isUsingFolders = true;
-	private static final Classifier BEST_CLASSIFIER = Classifier.J48;
-	private static final Classifier WORST_CLASSIFIER = Classifier.Bayes;
+	private static final Classifier BestClassifier = Classifier.J48;
+	private static final Classifier WorstClassifier = Classifier.Bayes;
+	private static final String trainFileName = "train/spamdata-dev-E16.arff";
 	
 	
 	public static void main(String[] args)
@@ -42,21 +43,26 @@ public class SpamAnalysisApp
 		String ob = args[1];
 		String ow = args[2];
 		
+		DataSource sourceTrain = null;
 		DataSource sourceInput = null;
 		
 		try 
 		{
+			sourceTrain = new DataSource(trainFileName);
+			Instances trainData = sourceTrain.getDataSet();
+			if (trainData.classIndex() == -1)
+				trainData.setClassIndex(trainData.numAttributes() - 1);
+			
 			sourceInput = new DataSource((isUsingFolders ? "input/" : "") + i);
-			Instances data = sourceInput.getDataSet();
-			if (data.classIndex() == -1)
-				data.setClassIndex(data.numAttributes() - 1);
+			Instances inputData = sourceInput.getDataSet();
+			if (inputData.classIndex() == -1)
+				inputData.setClassIndex(inputData.numAttributes() - 1);
 			
 			// Use the best method
-			analyzeData(data, BEST_CLASSIFIER, ob);
+			analyzeData(trainData, inputData, BestClassifier, ob);
 			
 			// Use the worst method
-			analyzeData(data, WORST_CLASSIFIER, ow);
-			
+			analyzeData(trainData, inputData, WorstClassifier, ow);
 		} 
 		catch (Exception e)
 		{
@@ -66,7 +72,7 @@ public class SpamAnalysisApp
 		}
 	}
 	
-	private static void analyzeData(Instances data, Classifier method, String outputFileName) throws FileNotFoundException
+	private static void analyzeData(Instances trainData, Instances inputData, Classifier method, String outputFileName) throws FileNotFoundException
 	{
 		PrintWriter pw = null;
 		
@@ -74,7 +80,7 @@ public class SpamAnalysisApp
 		{
 			System.out.println("Method: " + method.name());
 			
-			int[] results = classifiers[method.ordinal()].classify(data);
+			int[] results = classifiers[method.ordinal()].classify(trainData, inputData);
 			
 			pw = new PrintWriter((isUsingFolders ? "output/" : "") + outputFileName);
 			
