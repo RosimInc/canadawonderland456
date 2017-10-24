@@ -1,4 +1,5 @@
-package ets.gti770.spam;
+package ets.gti770.spam.app;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
@@ -6,13 +7,23 @@ import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
 import ets.gti770.spam.classifiers.bayes.BayesSpamClassifier;
 import ets.gti770.spam.classifiers.j48.J48SpamClassifier;
 import ets.gti770.spam.classifiers.knn.KNNSpamClassifier;
+
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 
-
+/**
+ * This application uses various machine learning algorithms in order
+ *  to classify input data about email, to determine if they contain
+ *  spam or not.
+ * @author Jean-Philippe Leclerc
+ * @author Jonathan Saindon
+ * @author Simon Robert
+ * @version 2017-10-25
+ */
 public class SpamAnalysisApp
 {
-	private enum Classifier {Bayes, KNN, J48, NONE}
+	// Available classifiers
+	private enum ClassifierID {Bayes, KNN, J48, NONE}
 	private static ISpamClassifierStrategy[] classifiers = {
 			new BayesSpamClassifier(),
 			new KNNSpamClassifier(),
@@ -20,12 +31,13 @@ public class SpamAnalysisApp
 	};
 	
 	// Run options
-	private static final boolean isUsingFolders = true;
-	private static final Classifier BestClassifier = Classifier.J48;
-	private static final Classifier WorstClassifier = Classifier.Bayes;
-	private static final String trainFileName = "train/spamdata-dev-E16.arff";
+	private static final ClassifierID BestClassifier = ClassifierID.J48;
+	private static final ClassifierID WorstClassifier = ClassifierID.Bayes;
+	private static final String trainFileName = "train-data.arff";
 	
-	
+	/*
+	 * Launches the application
+	 */
 	public static void main(String[] args)
 	{
 		// Input validation
@@ -33,46 +45,56 @@ public class SpamAnalysisApp
 		{
 			System.out.println("Error - Wrong input parameters");
 			System.out.println("Usage:");
-			System.out.println(" i  - Input file name");
+			System.out.println(" in - Input file name");
 			System.out.println(" ob - Output file name for best solution");
 			System.out.println(" ow - Output file name for worst solution");
 			System.exit(1);
 		}
-				
-		String i = args[0];
-		String ob = args[1];
-		String ow = args[2];
+		
+		// Argument extraction
+		String inputFile = args[0];
+		String outputFileBest = args[1];
+		String outputFileWorst = args[2];
+		
+		// Load the local resource
+		// This allows the file to be packaged inside the Jar
+		String localTrainFileName = SpamAnalysisApp.class.getResource(trainFileName).getFile();
 		
 		DataSource sourceTrain = null;
 		DataSource sourceInput = null;
 		
-		try 
+		try
 		{
-			sourceTrain = new DataSource(trainFileName);
+			// Load the training data
+			sourceTrain = new DataSource(localTrainFileName);
 			Instances trainData = sourceTrain.getDataSet();
 			if (trainData.classIndex() == -1)
 				trainData.setClassIndex(trainData.numAttributes() - 1);
 			
-			sourceInput = new DataSource((isUsingFolders ? "input/" : "") + i);
+			// Load the analysis data
+			sourceInput = new DataSource(inputFile);
 			Instances inputData = sourceInput.getDataSet();
 			if (inputData.classIndex() == -1)
 				inputData.setClassIndex(inputData.numAttributes() - 1);
 			
 			// Use the best method
-			analyzeData(trainData, inputData, BestClassifier, ob);
+			analyzeData(trainData, inputData, BestClassifier, outputFileBest);
 			
 			// Use the worst method
-			analyzeData(trainData, inputData, WorstClassifier, ow);
+			analyzeData(trainData, inputData, WorstClassifier, outputFileWorst);
 		} 
 		catch (Exception e)
 		{
 			e.printStackTrace();
 			System.exit(1);
-			
 		}
 	}
 	
-	private static void analyzeData(Instances trainData, Instances inputData, Classifier method, String outputFileName) throws FileNotFoundException
+	/*
+	 * Trains and analyzes data using a specific classifier method
+	 */
+	private static void analyzeData(Instances trainData, Instances inputData, 
+			ClassifierID method, String outputFileName) throws FileNotFoundException
 	{
 		PrintWriter pw = null;
 		
@@ -80,10 +102,11 @@ public class SpamAnalysisApp
 		{
 			System.out.println("Method: " + method.name());
 			
+			// Use the specified method to classify the input data
 			int[] results = classifiers[method.ordinal()].classify(trainData, inputData);
 			
-			pw = new PrintWriter((isUsingFolders ? "output/" : "") + outputFileName);
-			
+			// Output the results to the file
+			pw = new PrintWriter(outputFileName);
 			for(int r : results)
 				pw.println(r);
 		}
@@ -93,6 +116,7 @@ public class SpamAnalysisApp
 		}
 		finally
 		{
+			// Make sure the file stream is closed
 			if(pw != null)
 				pw.close();
 		}
