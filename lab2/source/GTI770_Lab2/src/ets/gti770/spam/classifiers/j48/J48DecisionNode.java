@@ -29,16 +29,34 @@ class J48DecisionNode extends J48TreeNode
 	 */
 	public J48DecisionNode(DataSet dataSet, SplitInfo splitInfo, int level)
 	{
+		// SR Remove
+		/*System.out.println("Decision node!");
+		System.out.println("  Level:  " + level);
+		System.out.println("  Attrib: " + splitInfo.attributeIndex);*/
+		
 		this.splitInfo = splitInfo;
 		
 		Instances instances = dataSet.instances;
 		int splitIndex = splitInfo.splitIndex;
+		int numInstances = dataSet.totalValues;
+		
+		instances.sort(splitInfo.attributeIndex);
+		
+		// SR Remove
+		/*System.out.println(" n " + numInstances);*/
 		
 		// Split the data in two
 		DataSet lDataSet = new DataSet(new Instances(instances, 
 				0, splitIndex));
+		// SR Remove
+		/*for(Instance i : lDataSet.instances)
+			System.out.println("L " + i.toString());*/
+		
 		DataSet rDataSet = new DataSet(new Instances(instances, 
-				splitIndex, instances.numAttributes() - splitIndex));
+				splitIndex, numInstances - splitIndex));
+		// SR Remove
+		/*for(Instance i : rDataSet.instances)
+			System.out.println("R " + i.toString());*/
 		
 		// Create the children nodes
 		this.lNode = J48Utils.createNode(lDataSet, level + 1);
@@ -58,5 +76,4 @@ class J48DecisionNode extends J48TreeNode
 		else		
 			return rNode.getSpamValue(instance);
 	}
-
 }

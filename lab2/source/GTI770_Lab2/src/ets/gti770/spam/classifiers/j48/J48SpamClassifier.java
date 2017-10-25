@@ -1,7 +1,10 @@
 package ets.gti770.spam.classifiers.j48;
 
+import java.util.Random;
+
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
 import ets.gti770.spam.utils.DataSet;
+import weka.core.Instance;
 import weka.core.Instances;
 
 /**
@@ -15,16 +18,38 @@ import weka.core.Instances;
  */
 public class J48SpamClassifier implements ISpamClassifierStrategy
 {
-	private static final double trainingProportion = 0.9;
+	private static final double trainingProportion = 0.95;
 	
 	@Override
 	public int[] classify(Instances trainData, Instances inputData) 
 	{
 		int[] results = new int[inputData.size()];
 		
-		// SR J48 - Train data
+		J48TreeNode treeRoot = trainClassifier(trainData);
 		
-		/*Instances subset = new Instances(trainData);
+		int numInput = inputData.size();
+		
+		for(int i=0; i<numInput; i++)
+		{
+			results[i] = treeRoot.getSpamValue(inputData.get(i));
+		}
+		
+		return results;
+	}
+	
+	public J48TreeNode trainClassifier(Instances trainData)
+	{
+		DataSet dataSet = new DataSet(trainData);
+		return J48Utils.createNode(dataSet);
+	}
+	
+	/**
+	 * This test method computes 
+	 * @param trainData
+	 */
+	public void testClassify(Instances trainData) 
+	{
+		Instances subset = new Instances(trainData);
 		
 		int numInstances = subset.size();
 		int numTraining = (int)(numInstances * trainingProportion);
@@ -33,22 +58,34 @@ public class J48SpamClassifier implements ISpamClassifierStrategy
 		Instances train = new Instances(
 				subset, 0, numTraining);
 		Instances valid = new Instances(
-				subset,numTraining, numInstances-numTraining);*/
+				subset,numTraining, numInstances-numTraining);
 		
-		DataSet dataSet = new DataSet(trainData);
-		/*System.out.println(set.entropy);
-		System.out.println(set.numNonSpam);
-		System.out.println(set.numSpam);
-		System.out.println(set.totalValues);*/
+		J48TreeNode treeRoot = trainClassifier(train);
 		
-		/*SplitInfo info = LearningUtils.getBestSplit(set, 2);
-		System.out.println(info.splitValue);*/
+		validate(treeRoot, valid);
+	}
+
+	/*
+	 * Tests values for a specific subset of the training data.
+	 */
+	private void validate(J48TreeNode treeRoot, Instances instances)
+	{
+		int numCorrect = 0;
+		int numIncorrect = 0;
 		
-		J48TreeNode treeRoot = J48Utils.createNode(dataSet);
+		// For each instance, determine if the prediction is true
+		int expected, actual;
+		for(Instance i : instances)
+		{
+			expected = (int)i.classValue();
+			actual = treeRoot.getSpamValue(i);
+			
+			if(expected == actual)
+				numCorrect++;
+			else
+				numIncorrect++;
+		}
 		
-		
-		// SR J48 - Classify input data
-		
-		return results;
+		System.out.println(numCorrect * 1.0 / (numCorrect+numIncorrect));
 	}
 }

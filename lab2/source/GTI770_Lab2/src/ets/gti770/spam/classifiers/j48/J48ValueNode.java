@@ -24,6 +24,9 @@ class J48ValueNode extends J48TreeNode
 	public J48ValueNode(DataSet dataSet)
 	{
 		this.value = dataSet.valueMostOften;
+		
+		// SR Remove
+		/*System.out.println("Value  " + value + " node!");*/
 	}
 	
 	@Override

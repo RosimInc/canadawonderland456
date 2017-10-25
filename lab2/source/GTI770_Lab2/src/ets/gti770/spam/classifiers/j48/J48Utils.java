@@ -14,7 +14,7 @@ import ets.gti770.spam.utils.SplitInfo;
  */
 class J48Utils 
 {
-	private static final int maxTreeDepth = 15;
+	private static final int maxTreeDepth = 10;
 	
 	/**
 	 * This utility method dynamically creates a tree node according
@@ -25,13 +25,24 @@ class J48Utils
 	 */
 	public static J48TreeNode createNode(DataSet dataSet, int level)
 	{
+		// SR Remove
+		/*System.out.println(dataSet.numNonSpam + " " + dataSet.numSpam);*/
+		
 		// Value node if there is only one type of value
 		if(dataSet.numNonSpam * dataSet.numSpam == 0)
+		{
+			// SR Remove
+			/*System.out.println("   Zero");*/
 			return new J48ValueNode(dataSet);
+		}
 		
 		// Value node if depth is greater than a threshold
 		if(level > maxTreeDepth)
+		{
+			// SR Remove
+			/*System.out.println("   Max depth");*/
 			return new J48ValueNode(dataSet);
+		}
 		
 		int numAttributes = dataSet.instances.numAttributes();
 		double bestGain = 0;
@@ -51,11 +62,19 @@ class J48Utils
 			}
 		}
 		
-		// SR Add decision to stop going further, according to level
+		// SR Remove
+		/*System.out.printf("  Best gain + %4.3f\n", bestGain);*/
 		
 		// If nothing is better, make a value node with the most found value
 		if(bestSplit == null)
+		{
+			// SR Remove
+			/*System.out.println("   Oops");*/
 			return new J48ValueNode(dataSet);
+		}
+
+		// SR Remove
+		/*System.out.println("   Alright");*/
 		
 		// Create a decision node with the computed split
 		return new J48DecisionNode(dataSet, bestSplit, level);
