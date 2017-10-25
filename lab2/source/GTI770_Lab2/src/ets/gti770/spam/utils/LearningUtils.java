@@ -58,7 +58,7 @@ public class LearningUtils {
 	 */
 	public static SplitInfo getBestSplit(DataSet dataSet, int attributeIndex)
 	{
-		Instances instances = new Instances(dataSet.instances);
+		Instances instances = dataSet.instances;
 		instances.sort(attributeIndex);
 		
 		int bestSplit = 1;
