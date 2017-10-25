@@ -63,11 +63,6 @@ public class LearningUtils {
 		Instances instances = dataSet.instances;
 		instances.sort(attributeIndex);
 		
-		// SR Remove
-		/*for(Instance i : dataSet.instances)
-			System.out.println("  " + i.toString());*/
-		
-		
 		int bestSplit = 1;
 		double bestValue = 0.0;
 		double bestGain = 0.0;
@@ -102,9 +97,6 @@ public class LearningUtils {
 				// If there is a better gain, split is kept
 				cGain = getGain(dataSet, counts[0], counts[1]);
 				
-				// SR Remove
-				//System.out.println(cGain);
-				
 				if(cGain > bestGain)
 				{
 					bestGain = cGain;
@@ -117,9 +109,6 @@ public class LearningUtils {
 			pSpamVal = cSpamVal;
 			pValue = cValue;
 		}
-			
-		// SR Remove
-		//System.out.printf("    Best gain + %4.3f\n", bestGain);
 		
 		return new SplitInfo(attributeIndex, bestSplit, bestValue, bestGain);
 	}

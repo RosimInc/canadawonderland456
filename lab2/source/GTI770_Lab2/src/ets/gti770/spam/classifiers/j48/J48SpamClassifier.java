@@ -25,10 +25,11 @@ public class J48SpamClassifier implements ISpamClassifierStrategy
 	{
 		int[] results = new int[inputData.size()];
 		
+		// Generate the tree
 		J48TreeNode treeRoot = trainClassifier(trainData);
 		
+		// Predict all values
 		int numInput = inputData.size();
-		
 		for(int i=0; i<numInput; i++)
 		{
 			results[i] = treeRoot.getSpamValue(inputData.get(i));
@@ -37,6 +38,11 @@ public class J48SpamClassifier implements ISpamClassifierStrategy
 		return results;
 	}
 	
+	/**
+	 * This method creates a tree out of training data.
+	 * @param trainData The training data
+	 * @return The generated decision tree
+	 */
 	public J48TreeNode trainClassifier(Instances trainData)
 	{
 		DataSet dataSet = new DataSet(trainData);
@@ -44,38 +50,35 @@ public class J48SpamClassifier implements ISpamClassifierStrategy
 	}
 	
 	/**
-	 * This test method computes 
-	 * @param trainData
+	 * This test method computes the accuracy of the algorithm
+	 *  by separating the data for training and validation.
+	 * @param data The data used for supervised learning
 	 */
-	public void testClassify(Instances trainData) 
+	public void testClassify(Instances data) 
 	{
-		Instances subset = new Instances(trainData);
-		
-		int numInstances = subset.size();
+		int numInstances = data.size();
 		int numTraining = (int)(numInstances * trainingProportion);
 		
-		subset.randomize(new Random(System.currentTimeMillis()));
-		Instances train = new Instances(
-				subset, 0, numTraining);
-		Instances valid = new Instances(
-				subset,numTraining, numInstances-numTraining);
+		// Shuffle the values
+		data.randomize(new Random(System.currentTimeMillis()));
 		
-		J48TreeNode treeRoot = trainClassifier(train);
+		// Split between training and validation data
+		Instances trainData = new Instances(
+				data, 0, numTraining);
+		Instances validData = new Instances(
+				data,numTraining, numInstances-numTraining);
 		
-		validate(treeRoot, valid);
-	}
-
-	/*
-	 * Tests values for a specific subset of the training data.
-	 */
-	private void validate(J48TreeNode treeRoot, Instances instances)
-	{
+		// Build the tree
+		J48TreeNode treeRoot = trainClassifier(trainData);
+		
+		// Validation
+		
 		int numCorrect = 0;
 		int numIncorrect = 0;
 		
 		// For each instance, determine if the prediction is true
 		int expected, actual;
-		for(Instance i : instances)
+		for(Instance i : validData)
 		{
 			expected = (int)i.classValue();
 			actual = treeRoot.getSpamValue(i);
