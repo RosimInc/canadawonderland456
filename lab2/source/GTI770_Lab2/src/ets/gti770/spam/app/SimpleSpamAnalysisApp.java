@@ -1,41 +1,38 @@
 package ets.gti770.spam.app;
 
+
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
-import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
-import ets.gti770.spam.classifiers.bayes.BayesSpamClassifier;
-import ets.gti770.spam.classifiers.j48.J48SpamClassifier;
-import ets.gti770.spam.classifiers.knn.KNNSpamClassifier;
-
+import weka.classifiers.Classifier;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 
 /**
- * This application uses various machine learning algorithms in order
- *  to classify input data about email, to determine if they contain
- *  spam or not.
+ * This application uses Weka models in order to classify
+ *  some unlabeled information.
  *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert
  * @version 2017-10-25
  */
-public class SpamAnalysisApp
+public class SimpleSpamAnalysisApp
 {
 	// Available classifiers
 	private enum ClassifierID {Bayes, KNN, J48, NONE}
-	private static ISpamClassifierStrategy[] classifiers = {
-			new BayesSpamClassifier(),
-			new KNNSpamClassifier(),
-			new J48SpamClassifier()
+	private static String[] classifiers = {
+			"bayes.model",
+			"knn.model",
+			"j48.model"
 	};
 	
 	// Run options
 	private static final ClassifierID BestClassifier = ClassifierID.J48;
 	private static final ClassifierID WorstClassifier = ClassifierID.Bayes;
-	private static final String trainFileName = "train-data.arff";
-	//private static final String trainFileName = "td.arff";
 	
 	/*
 	 * Launches the application
@@ -58,24 +55,10 @@ public class SpamAnalysisApp
 		String outputFileBest = args[1];
 		String outputFileWorst = args[2];
 		
-		String localTrainFileName = "";
-		
-		DataSource sourceTrain = null;
 		DataSource sourceInput = null;
 		
 		try 
 		{
-			// Load the local resource
-			// This allows the file to be packaged inside the Jar
-			localTrainFileName = SpamAnalysisApp.class.
-					getResource(trainFileName).toURI().getPath();
-		
-			// Load the training data
-			sourceTrain = new DataSource(localTrainFileName);
-			Instances trainData = sourceTrain.getDataSet();
-			if (trainData.classIndex() == -1)
-				trainData.setClassIndex(trainData.numAttributes() - 1);
-			
 			// Load the analysis data
 			sourceInput = new DataSource(inputFile);
 			Instances inputData = sourceInput.getDataSet();
@@ -83,10 +66,10 @@ public class SpamAnalysisApp
 				inputData.setClassIndex(inputData.numAttributes() - 1);
 			
 			// Use the best method
-			analyzeData(trainData, inputData, BestClassifier, outputFileBest);
+			analyzeData(inputData, BestClassifier, outputFileBest);
 			
 			// Use the worst method
-			analyzeData(trainData, inputData, WorstClassifier, outputFileWorst);
+			analyzeData(inputData, WorstClassifier, outputFileWorst);
 		} 
 		catch (Exception e)
 		{
@@ -98,18 +81,31 @@ public class SpamAnalysisApp
 	/*
 	 * Trains and analyzes data using a specific classifier method
 	 */
-	private static void analyzeData(Instances trainData, Instances inputData, 
-			ClassifierID method, String outputFileName) throws FileNotFoundException
+	private static void analyzeData(Instances inputData, 
+			ClassifierID method, String outputFileName) throws Exception
 	{
 		PrintWriter pw = null;
+		String localTrainFileName;
 		
 		try
 		{
 			System.out.println("Method: " + method.name());
 			
-			// Use the specified method to classify the input data
-			int[] results = classifiers[method.ordinal()].classify(trainData, inputData);
+			int[] results = new int[inputData.size()];
 			
+			localTrainFileName = SimpleSpamAnalysisApp.class.
+					getResource(classifiers[method.ordinal()]).toURI().getPath();
+		
+			Classifier classifier = (Classifier) SerializationHelper.read(
+					new FileInputStream(localTrainFileName));
+			
+			int numInstances = inputData.size();
+			
+			for(int i=0; i<numInstances; i++)
+			{
+				results[i] = (int)classifier.classifyInstance(inputData.get(i));
+			}
+
 			// Output the results to the file
 			pw = new PrintWriter(outputFileName);
 			for(int r : results)
