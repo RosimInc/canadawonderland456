@@ -5,6 +5,7 @@ import weka.core.Instances;
 /**
  * This interface serves as a strategy to classify data following
  *  different algorithms, using a given training set.
+ *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert

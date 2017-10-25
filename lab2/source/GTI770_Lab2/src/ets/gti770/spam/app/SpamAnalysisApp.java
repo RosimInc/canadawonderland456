@@ -15,6 +15,7 @@ import weka.core.converters.ConverterUtils.DataSource;
  * This application uses various machine learning algorithms in order
  *  to classify input data about email, to determine if they contain
  *  spam or not.
+ *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert
@@ -34,6 +35,7 @@ public class SpamAnalysisApp
 	private static final ClassifierID BestClassifier = ClassifierID.J48;
 	private static final ClassifierID WorstClassifier = ClassifierID.Bayes;
 	private static final String trainFileName = "train-data.arff";
+	//private static final String trainFileName = "td.arff";
 	
 	/*
 	 * Launches the application

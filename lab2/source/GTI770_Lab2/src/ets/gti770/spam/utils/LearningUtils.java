@@ -66,13 +66,15 @@ public class LearningUtils {
 		double bestGain = 0.0;
 		
 		int cSplit;
+		double pValue = Double.MIN_VALUE;
+		double cValue;
 		double cGain;
 		
 		// numNonSpams, numSpams
 		int[] counts = {0,0};
 		
-		int pSpamVal; // Previous value
-		int cSpamVal; // Current value
+		int pSpamVal; // Previous spam value
+		int cSpamVal; // Current spam value
 		
 		
 		// Get the first value
@@ -80,16 +82,24 @@ public class LearningUtils {
 		pSpamVal = (int)instance.classValue();
 		counts[pSpamVal]++;
 		
+		// SR Remove
+		System.out.println("Beginning");
+		
 		// Iterate through all the pairs
-		int numInstances = instances.size();
+		int numInstances = instances.size() - 1;
 		for(cSplit=1; cSplit<numInstances; cSplit++)
 		{
 			instance = instances.get(cSplit);
 			cSpamVal = (int)instance.classValue();
-			counts[cSpamVal]++;
+			cValue = instance.value(attributeIndex);
+			
+			// SR Remove
+			System.out.printf("%4.2f, %d\n", 
+					instance.value(attributeIndex),
+					cSpamVal);
 			
 			// If there is a change of trend
-			if(pSpamVal != cSpamVal)
+			if(pSpamVal != cSpamVal && cValue > (pValue + 0.001))
 			{
 				// If there is a better gain, split is kept
 				cGain = getGain(dataSet, counts[0], counts[1]);
@@ -97,11 +107,16 @@ public class LearningUtils {
 				{
 					bestGain = cGain;
 					bestSplit = cSplit;
-					bestValue = instance.value(attributeIndex);
+					bestValue = cValue;
 				}
+				
+				// SR Remove
+				System.out.printf("  Gain: %6.4f\n", cGain);
 			}
+			counts[cSpamVal]++;
 			
 			pSpamVal = cSpamVal;
+			pValue = cValue;
 		}
 		
 		return new SplitInfo(bestSplit, bestValue, bestGain);
