@@ -1,6 +1,7 @@
 package ets.gti770.spam.classifiers.j48;
 
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
+import weka.core.Instance;
 import weka.core.Instances;
 
 /**
@@ -20,10 +21,22 @@ public class J48SpamClassifier implements ISpamClassifierStrategy
 		
 		// SR J48 - Train data
 		
+		Instances subset = new Instances(trainData/*,0,30*/);
+		//subset.sort(subset.classIndex());
+		
+		
+		
 		// SR J48 - Classify input data
 		
 		// SR J48 - Make sure all new classes are package
 		
 		return results;
+	}
+	
+	private J48TreeNode createNode(Instances i)
+	{
+		//Instances subTree = new Instances(i, 0, splitIndex);
+		
+		return null;
 	}
 }
