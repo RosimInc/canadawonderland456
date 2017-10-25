@@ -1,9 +1,11 @@
 package ets.gti770.spam.classifiers.bayes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
 import weka.core.Attribute;
@@ -24,25 +26,40 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 	public int[] classify(Instances trainData, Instances inputData) 
 	{
 		int[] results = new int[inputData.size()];
-		ArrayList<BayesAttribute> attributes = new ArrayList<>();
 		
+		ArrayList<BayesAttribute> attributes = new ArrayList<>();
 		// JS Bayes - Train data
 		
-		// Init hashmap and attributes data
+		// Init arraylist of attributes data
 		Enumeration<Attribute> enumAttr = trainData.enumerateAttributes();
 		while (enumAttr.hasMoreElements()) {
 			attributes.add(new BayesAttribute(enumAttr.nextElement()));
 		}
-		Attribute classAttr = attributes.get(attributes.size() - 1).getWekaAttribute();
 		
-		// Parse train data into attributes data
+		// Parse training data into attributes data
+		Attribute classAttr = trainData.classAttribute();
 		Enumeration<Instance> enumInstances = trainData.enumerateInstances();
 		while (enumInstances.hasMoreElements()) {
 			Instance data = enumInstances.nextElement();
-			boolean isSpam = data.value(classAttr) == 1;
+			double spamValue = data.value(classAttr);
+			boolean isSpam = spamValue == 1.0;
+			
 			for (BayesAttribute attr : attributes) {
-				attr.parse(data.value(attr.getWekaAttribute()), isSpam);
+				double value = data.value(attr.getWekaAttribute());
+				attr.parse(value, isSpam);
 			}
+		}
+
+		ArrayList<BayesAttribute> goodAttributes = new ArrayList<>();
+		for (BayesAttribute attr : attributes) {
+			double spamRatio = attr.getSpamProbability();
+			if (spamRatio > 0.4) {
+				goodAttributes.add(attr);
+			}
+		}
+		
+		for (BayesAttribute attr : goodAttributes) {
+			System.out.println(attr.getWekaAttribute().name() + ", ratio: " + attr.getSpamProbability());
 		}
 		
 		// JS Bayes - Classify input data
