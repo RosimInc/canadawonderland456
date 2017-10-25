@@ -35,6 +35,8 @@ public class LearningUtils {
 	 */
 	public static double getEntropy(int numSpam, int numNonSpam)
 	{
+		if(numSpam * numNonSpam == 0)
+			return 0;
 		return getEntropy(((double)numSpam)/(numSpam+numNonSpam));
 	}
 	
@@ -76,14 +78,10 @@ public class LearningUtils {
 		int pSpamVal; // Previous spam value
 		int cSpamVal; // Current spam value
 		
-		
 		// Get the first value
 		Instance instance = instances.get(0);
 		pSpamVal = (int)instance.classValue();
 		counts[pSpamVal]++;
-		
-		// SR Remove
-		System.out.println("Beginning");
 		
 		// Iterate through all the pairs
 		int numInstances = instances.size() - 1;
@@ -93,13 +91,8 @@ public class LearningUtils {
 			cSpamVal = (int)instance.classValue();
 			cValue = instance.value(attributeIndex);
 			
-			// SR Remove
-			System.out.printf("%4.2f, %d\n", 
-					instance.value(attributeIndex),
-					cSpamVal);
-			
 			// If there is a change of trend
-			if(pSpamVal != cSpamVal && cValue > (pValue + 0.001))
+			if(pSpamVal != cSpamVal && (cValue - pValue) > 0.001)
 			{
 				// If there is a better gain, split is kept
 				cGain = getGain(dataSet, counts[0], counts[1]);
@@ -109,9 +102,6 @@ public class LearningUtils {
 					bestSplit = cSplit;
 					bestValue = cValue;
 				}
-				
-				// SR Remove
-				System.out.printf("  Gain: %6.4f\n", cGain);
 			}
 			counts[cSpamVal]++;
 			
@@ -119,7 +109,7 @@ public class LearningUtils {
 			pValue = cValue;
 		}
 		
-		return new SplitInfo(bestSplit, bestValue, bestGain);
+		return new SplitInfo(attributeIndex, bestSplit, bestValue, bestGain);
 	}
 
 	/**
@@ -136,9 +126,9 @@ public class LearningUtils {
 		int sTotal = dataSet.totalValues;
 		
 		double lEntropy = getEntropy(numSpam, numNonSpam);
-		double rEntropy = getEntropy(dataSet.numSpam-numSpam, 
-				dataSet.numNonSpam-numNonSpam);
-		
+		double rEntropy = getEntropy(dataSet.numSpam - numSpam, 
+				dataSet.numNonSpam - numNonSpam);
+
 		int lTotal = numSpam + numNonSpam;
 		int rTotal = sTotal - lTotal;
 		
