@@ -2,8 +2,6 @@ package ets.gti770.spam.app;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
 import ets.gti770.spam.classifiers.bayes.BayesSpamClassifier;
@@ -17,6 +15,7 @@ import weka.core.converters.ConverterUtils.DataSource;
  * This application uses various machine learning algorithms in order
  *  to classify input data about email, to determine if they contain
  *  spam or not.
+ *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert
@@ -36,6 +35,7 @@ public class SpamAnalysisApp
 	private static final ClassifierID BestClassifier = ClassifierID.J48;
 	private static final ClassifierID WorstClassifier = ClassifierID.Bayes;
 	private static final String trainFileName = "train-data.arff";
+	//private static final String trainFileName = "td.arff";
 	
 	/*
 	 * Launches the application
@@ -58,15 +58,15 @@ public class SpamAnalysisApp
 		String outputFileBest = args[1];
 		String outputFileWorst = args[2];
 		
+		String localTrainFileName = "";
+		
 		DataSource sourceTrain = null;
 		DataSource sourceInput = null;
 		
-		// Load the local resource
-		// This allows the file to be packaged inside the Jar
-		String localTrainFileName = "";
 		try {
-			localTrainFileName = URLDecoder.decode(
-					SpamAnalysisApp.class.getResource(trainFileName).getPath(), "UTF-8");
+			// Load the local resource
+			// This allows the file to be packaged inside the Jar
+			localTrainFileName = SpamAnalysisApp.class.getResource(trainFileName).toURI().getPath();
 			System.out.println(localTrainFileName);
 		
 			// Load the training data
