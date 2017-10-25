@@ -29,9 +29,6 @@ class J48DecisionNode extends J48TreeNode
 	 */
 	public J48DecisionNode(DataSet dataSet, SplitInfo splitInfo, int level)
 	{
-		// SR Remove code
-		//super(dataSet);
-		
 		this.splitInfo = splitInfo;
 		
 		Instances instances = dataSet.instances;

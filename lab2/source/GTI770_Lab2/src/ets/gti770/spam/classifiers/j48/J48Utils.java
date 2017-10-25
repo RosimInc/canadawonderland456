@@ -14,6 +14,8 @@ import ets.gti770.spam.utils.SplitInfo;
  */
 class J48Utils 
 {
+	private static final int maxTreeDepth = 15;
+	
 	/**
 	 * This utility method dynamically creates a tree node according
 	 *  to specific criteria.
@@ -25,6 +27,10 @@ class J48Utils
 	{
 		// Value node if there is only one type of value
 		if(dataSet.numNonSpam * dataSet.numSpam == 0)
+			return new J48ValueNode(dataSet);
+		
+		// Value node if depth is greater than a threshold
+		if(level > maxTreeDepth)
 			return new J48ValueNode(dataSet);
 		
 		int numAttributes = dataSet.instances.numAttributes();

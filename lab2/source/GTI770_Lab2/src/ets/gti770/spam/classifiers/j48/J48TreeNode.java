@@ -1,18 +1,23 @@
 package ets.gti770.spam.classifiers.j48;
 
-// SR Remove code
-//import ets.gti770.spam.utils.DataSet;
 import weka.core.Instance;
 
+/**
+ * This class represents a tree node in the J48
+ *  classification algorithm.
+ *  
+ * @author Jean-Philippe Leclerc
+ * @author Jonathan Saindon
+ * @author Simon Robert
+ * @version 2017-10-25
+ */
 public abstract class J48TreeNode 
 {
-	// SR Remove code
-	/*private DataSet dataSet;
-
-	public J48TreeNode(DataSet dataSet)
-	{
-		this.dataSet = dataSet;
-	}*/
-	
+	/**
+	 * This method returns the value determined by the tree node
+	 *  or its potential children, given a specific instance.
+	 * @param instance The instance to classify
+	 * @return The classification
+	 */
 	public abstract int getSpamValue(Instance instance);
 }

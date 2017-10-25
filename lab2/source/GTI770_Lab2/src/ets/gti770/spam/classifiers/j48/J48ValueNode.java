@@ -23,8 +23,6 @@ class J48ValueNode extends J48TreeNode
 	 */
 	public J48ValueNode(DataSet dataSet)
 	{
-		// SR Remove code
-		//super(dataSet);
 		this.value = dataSet.valueMostOften;
 	}
 	
