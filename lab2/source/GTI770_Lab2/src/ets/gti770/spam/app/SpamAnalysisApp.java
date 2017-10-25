@@ -2,8 +2,6 @@ package ets.gti770.spam.app;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
 import ets.gti770.spam.classifiers.bayes.BayesSpamClassifier;
@@ -58,15 +56,15 @@ public class SpamAnalysisApp
 		String outputFileBest = args[1];
 		String outputFileWorst = args[2];
 		
+		String localTrainFileName = "";
+		
 		DataSource sourceTrain = null;
 		DataSource sourceInput = null;
 		
-		// Load the local resource
-		// This allows the file to be packaged inside the Jar
-		String localTrainFileName = "";
 		try {
-			localTrainFileName = URLDecoder.decode(
-					SpamAnalysisApp.class.getResource(trainFileName).getPath(), "UTF-8");
+			// Load the local resource
+			// This allows the file to be packaged inside the Jar
+			localTrainFileName = SpamAnalysisApp.class.getResource(trainFileName).toURI().getPath();
 			System.out.println(localTrainFileName);
 		
 			// Load the training data
