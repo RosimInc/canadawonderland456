@@ -11,43 +11,45 @@ import weka.core.Attribute;
  * @version 2017-10-24
  */
 class BayesAttribute {
-	private int spam;
-	private int notSpam;
-	private int hasValueWhenSpam;
-	private int hasValueWhenNotSpam;
+	private int truePositive;
+	private int trueNegative;
+	private int falsePositive;
+	private int falseNegative;
 	private Attribute wekaAttribute;
 	
 	public BayesAttribute(Attribute wekaAttribute) {
 		this.wekaAttribute = wekaAttribute;
-		this.spam = 0;
-		this.notSpam = 0;
-		this.hasValueWhenSpam = 0;
-		this.hasValueWhenNotSpam = 0;
+		this.truePositive = 0;
+		this.trueNegative = 0;
+		this.falsePositive = 0;
+		this.falseNegative = 0;
 	}
 	
 	public void parse(double value, boolean isSpam) {
 		if (isSpam) {
-			this.spam++;
-			
-			if (value > 0.0)
-				hasValueWhenSpam++;
+			if (value > 0.0) {
+				truePositive++;
+			} else {
+				falseNegative++;
+			}
 		}
 		else {
-			this.notSpam++;
-
-			if (value > 0.0)
-				hasValueWhenNotSpam++;
+			if (value > 0.0) {
+				falsePositive++;
+			} else {
+				trueNegative++;
+			}
 		}
 	}
 	
 	public double getSpamProbability() {
-		return (double)this.spam / (double)(this.spam + this.notSpam);
+		double nSpam = truePositive + trueNegative;
+		double nNotSpam = falsePositive + trueNegative;
+		double total = nSpam + nNotSpam;
+		double nWords = truePositive + falsePositive;
+		return (truePositive * (nSpam / total)) / nWords;
 	}
-	
-	public double getValuePresenceRatio() {
-		return (double)this.hasValueWhenSpam / (double)(this.hasValueWhenSpam + this.hasValueWhenNotSpam);
-	}
-	
+
 	public Attribute getWekaAttribute() {
 		return this.wekaAttribute;
 	}
