@@ -1,8 +1,12 @@
 package ets.gti770.spam.utils;
 
+import weka.core.Instance;
+import weka.core.Instances;
+
 /**
  * This utility class gives methods to help with machine
  *  learning algorithms.
+ *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert
@@ -45,9 +49,87 @@ public class LearningUtils {
 		return Math.log(num) / Math.log(2);
 	}
 	
-	/*public static void main(String[] args) {
-		System.out.println("Testing utilities");
-		System.out.println(log2(256));
-		System.out.println(getEntropy(5,9));
-	}*/
+	/**
+	 * This utility method computes the best split to perform on a
+	 *  continuous attribute in order to maximize the gain.
+	 * @param dataSet The dataset to split
+	 * @param attributeIndex The attribute to split
+	 * @return The set of split informations
+	 */
+	public static SplitInfo getBestSplit(DataSet dataSet, int attributeIndex)
+	{
+		Instances instances = new Instances(dataSet.instances);
+		instances.sort(attributeIndex);
+		
+		int bestSplit = 1;
+		double bestValue = 0.0;
+		double bestGain = 0.0;
+		
+		int cSplit;
+		double cGain;
+		
+		// numNonSpams, numSpams
+		int[] counts = {0,0};
+		
+		int pSpamVal; // Previous value
+		int cSpamVal; // Current value
+		
+		
+		// Get the first value
+		Instance instance = instances.get(0);
+		pSpamVal = (int)instance.classValue();
+		counts[pSpamVal]++;
+		
+		// Iterate through all the pairs
+		int numInstances = instances.size();
+		for(cSplit=1; cSplit<numInstances; cSplit++)
+		{
+			instance = instances.get(cSplit);
+			cSpamVal = (int)instance.classValue();
+			counts[cSpamVal]++;
+			
+			// If there is a change of trend
+			if(pSpamVal != cSpamVal)
+			{
+				// If there is a better gain, split is kept
+				cGain = getGain(dataSet, counts[0], counts[1]);
+				if(cGain > bestGain)
+				{
+					bestGain = cGain;
+					bestSplit = cSplit;
+					bestValue = instance.value(attributeIndex);
+				}
+			}
+			
+			pSpamVal = cSpamVal;
+		}
+		
+		return new SplitInfo(bestSplit, bestValue, bestGain);
+	}
+
+	/**
+	 * This utility method calculates the gain offered by a split with
+	 *  specific number of spam and non-spam values from a dataset.
+	 * @param dataSet The dataset to split
+	 * @param numNonSpam The number of non-spam values in the subset
+	 * @param numSpam The number of spam values in the subset
+	 * @return The calculated gain
+	 */
+	public static double getGain(DataSet dataSet, int numNonSpam, int numSpam)
+	{
+		double sEntropy = dataSet.entropy;
+		int sTotal = dataSet.totalValues;
+		
+		double lEntropy = getEntropy(numSpam, numNonSpam);
+		double rEntropy = getEntropy(dataSet.numSpam-numSpam, 
+				dataSet.numNonSpam-numNonSpam);
+		
+		int lTotal = numSpam + numNonSpam;
+		int rTotal = sTotal - lTotal;
+		
+		double gain = sEntropy - 
+				(lTotal * lEntropy + rTotal * rEntropy) / sTotal;
+		
+		return gain;
+	}
 }
