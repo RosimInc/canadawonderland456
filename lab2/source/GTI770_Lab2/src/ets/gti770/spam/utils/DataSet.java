@@ -16,6 +16,7 @@ public class DataSet
 	public final int numSpam;
 	public final int numNonSpam;
 	public final int totalValues;
+	public final int valueMostOften;
 	public final double entropy;
 	
 	public DataSet(Instances instances)
@@ -26,6 +27,8 @@ public class DataSet
 		
 		this.numNonSpam = counts[0];
 		this.numSpam = counts[1];
+		
+		valueMostOften = (numNonSpam > numSpam ? 0 : 1);
 		
 		this.totalValues = numSpam + numNonSpam;
 		

@@ -10,18 +10,21 @@ package ets.gti770.spam.utils;
  */
 public class SplitInfo 
 {
+	public final int attributeIndex;
 	public final int splitIndex;
 	public final double splitValue;
 	public final double splitGain;
 	
 	/**
 	 * Constructor
+	 * @param attributeIndex
 	 * @param splitIndex
 	 * @param splitValue
 	 * @param splitGain
 	 */
-	public SplitInfo(int splitIndex, double splitValue, double splitGain)
+	public SplitInfo(int attributeIndex, int splitIndex, double splitValue, double splitGain)
 	{
+		this.attributeIndex = attributeIndex;
 		this.splitIndex = splitIndex;
 		this.splitValue = splitValue;
 		this.splitGain = splitGain;

@@ -6,6 +6,7 @@ import weka.core.Instances;
 /**
  * This class trains and classifies data following the KNN
  *  algorithm.
+ *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert

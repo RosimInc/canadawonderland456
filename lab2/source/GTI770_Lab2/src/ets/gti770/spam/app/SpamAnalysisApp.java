@@ -66,8 +66,8 @@ public class SpamAnalysisApp
 		try {
 			// Load the local resource
 			// This allows the file to be packaged inside the Jar
-			localTrainFileName = SpamAnalysisApp.class.getResource(trainFileName).toURI().getPath();
-			System.out.println(localTrainFileName);
+			localTrainFileName = SpamAnalysisApp.class.
+					getResource(trainFileName).toURI().getPath();
 		
 			// Load the training data
 			sourceTrain = new DataSource(localTrainFileName);

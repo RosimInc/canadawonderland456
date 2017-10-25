@@ -1,19 +1,18 @@
 package ets.gti770.spam.classifiers.j48;
 
-import java.util.LinkedList;
+// SR Remove code
+//import ets.gti770.spam.utils.DataSet;
+import weka.core.Instance;
 
-import ets.gti770.spam.utils.DataSet;
-
-public class J48TreeNode 
+public abstract class J48TreeNode 
 {
-	private int level; // How deep in the tree
-	private LinkedList<J48TreeNode> children;
-	private DataSet dataSet;
+	// SR Remove code
+	/*private DataSet dataSet;
 
-	public J48TreeNode(int level, DataSet dataSet)
+	public J48TreeNode(DataSet dataSet)
 	{
-		this.level = level;
 		this.dataSet = dataSet;
-		this.children = new LinkedList<J48TreeNode>();
-	}
+	}*/
+	
+	public abstract int getSpamValue(Instance instance);
 }
