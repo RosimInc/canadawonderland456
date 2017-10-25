@@ -3,7 +3,7 @@ package ets.gti770.spam.utils;
 import weka.core.Instances;
 
 /**
- * This read-only structure gives info on a dataset of instances.
+ * This read-only structure gives info on a data set of instances.
  * 
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
@@ -19,11 +19,17 @@ public class DataSet
 	public final int valueMostOften;
 	public final double entropy;
 	
+	/**
+	 * Data set constructor
+	 * @param instances The instances to be analyzed
+	 */
 	public DataSet(Instances instances)
 	{
 		this.instances = instances;
 		
-		int[] counts = instances.attributeStats(instances.classIndex()).nominalCounts;
+		// Count the number of non-spam and spam values respectively
+		int[] counts = instances.attributeStats(
+				instances.classIndex()).nominalCounts;
 		
 		this.numNonSpam = counts[0];
 		this.numSpam = counts[1];

@@ -84,8 +84,8 @@ public class LearningUtils {
 		counts[pSpamVal]++;
 		
 		// Iterate through all the pairs
-		int numInstances = instances.size() - 1;
-		for(cSplit=1; cSplit<numInstances; cSplit++)
+		int numInstances = instances.size();
+		for(cSplit = 1; cSplit < numInstances; cSplit++)
 		{
 			instance = instances.get(cSplit);
 			cSpamVal = (int)instance.classValue();
@@ -96,6 +96,7 @@ public class LearningUtils {
 			{
 				// If there is a better gain, split is kept
 				cGain = getGain(dataSet, counts[0], counts[1]);
+				
 				if(cGain > bestGain)
 				{
 					bestGain = cGain;

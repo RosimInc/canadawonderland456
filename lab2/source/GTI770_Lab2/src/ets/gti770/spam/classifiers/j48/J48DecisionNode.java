@@ -33,30 +33,28 @@ class J48DecisionNode extends J48TreeNode
 		
 		Instances instances = dataSet.instances;
 		int splitIndex = splitInfo.splitIndex;
+		int numInstances = dataSet.totalValues;
+		
+		instances.sort(splitInfo.attributeIndex);
 		
 		// Split the data in two
 		DataSet lDataSet = new DataSet(new Instances(instances, 
 				0, splitIndex));
 		DataSet rDataSet = new DataSet(new Instances(instances, 
-				splitIndex, instances.numAttributes() - splitIndex));
+				splitIndex, numInstances - splitIndex));
 		
 		// Create the children nodes
 		this.lNode = J48Utils.createNode(lDataSet, level + 1);
 		this.rNode = J48Utils.createNode(rDataSet, level + 1);
-		
-		// SR Test the recursive creation
 	}
 	
 	@Override
 	public int getSpamValue(Instance instance)
 	{
-		// SR Test get spam value
-		
 		// Checks the split decision to determine the child to call
 		if(instance.value(splitInfo.attributeIndex) < splitInfo.splitValue)
 			return lNode.getSpamValue(instance);
 		else		
 			return rNode.getSpamValue(instance);
 	}
-
 }

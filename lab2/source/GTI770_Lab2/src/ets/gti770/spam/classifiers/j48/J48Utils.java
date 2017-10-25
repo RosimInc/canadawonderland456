@@ -14,7 +14,7 @@ import ets.gti770.spam.utils.SplitInfo;
  */
 class J48Utils 
 {
-	private static final int maxTreeDepth = 15;
+	private static final int maxTreeDepth = 10;
 	
 	/**
 	 * This utility method dynamically creates a tree node according
@@ -50,8 +50,6 @@ class J48Utils
 				bestSplit = cSplit;
 			}
 		}
-		
-		// SR Add decision to stop going further, according to level
 		
 		// If nothing is better, make a value node with the most found value
 		if(bestSplit == null)
