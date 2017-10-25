@@ -1,10 +1,7 @@
 package ets.gti770.spam.app;
 
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
 
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -23,7 +20,7 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class SimpleSpamAnalysisApp
 {
 	// Available classifiers
-	private enum ClassifierID {Bayes, KNN, J48, NONE}
+	private enum ClassifierID { Bayes, KNN, J48, NONE }
 	private static String[] classifiers = {
 			"bayes.model",
 			"knn.model",
@@ -85,22 +82,24 @@ public class SimpleSpamAnalysisApp
 			ClassifierID method, String outputFileName) throws Exception
 	{
 		PrintWriter pw = null;
-		String localTrainFileName;
 		
 		try
 		{
 			System.out.println("Method: " + method.name());
 			
 			int[] results = new int[inputData.size()];
-			
-			localTrainFileName = SimpleSpamAnalysisApp.class.
-					getResource(classifiers[method.ordinal()]).toURI().getPath();
+
+			// Load the local resource
+			// This allows the file to be packaged inside the Jar	
+			InputStream is = SimpleSpamAnalysisApp.class.
+					getResourceAsStream(classifiers[method.ordinal()]);
 		
-			Classifier classifier = (Classifier) SerializationHelper.read(
-					new FileInputStream(localTrainFileName));
+			// Generate the classifier from model
+			Classifier classifier = (Classifier) SerializationHelper.read(is);
 			
 			int numInstances = inputData.size();
 			
+			// Compute the expected value of each instance
 			for(int i=0; i<numInstances; i++)
 			{
 				results[i] = (int)classifier.classifyInstance(inputData.get(i));

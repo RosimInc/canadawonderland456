@@ -24,8 +24,6 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 	{
 		int[] results = new int[inputData.size()];
 		
-		// JS Bayes - Train data
-		
 		int nInstances = data.size();
 		int nTraining = (int)(nInstances * 0.9);
 		
@@ -40,62 +38,64 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 		ArrayList<BayesAttribute> significativeAttributes = train(trainData);
 		
 		
-		// JS Bayes - Validate data
+		// Validate data
 		testClassify(validData, significativeAttributes);
 
 		
-		// JS Bayes - Classify input data
+		// Classify input data
 		int i = 0;
 		int nPossibleFlags = significativeAttributes.size();
 		Enumeration<Instance> enumData = inputData.enumerateInstances();
-		while (enumData.hasMoreElements()) {
+		while (enumData.hasMoreElements()) 
+		{
 			int flagsCount = 0;
 			
 			Instance element = enumData.nextElement();
-			// Check presence of value (rise flag) for every significative attribute
-			for (BayesAttribute attr : significativeAttributes) {
+			// Check presence of value (raise flag) for every significative attribute
+			for (BayesAttribute attr : significativeAttributes) 
+			{
 				double value = element.value(attr.getWekaAttribute());
 				
-				if (value > 0.0) {
+				if (value > 0.0)
 					flagsCount++;
-				}
 			}
 			
 			// Flag as spam if at least half the flags were risen
-			if (flagsCount > (nPossibleFlags / 2)) {
+			if (flagsCount > (nPossibleFlags / 2)) 
 				results[i] = 1;
-			}
+			
 			i++;
 		}
 		
 		return results;
 	}
 
-	/**
+	/*
 	 * Train with data to determine the best attributes to use for data validation
-	 * according to Bayes probability analysis
-	 * 
-	 * @param trainData
-	 * @return goodAttributes
+	 * according to Bayes probability analysis.
 	 */
-	private ArrayList<BayesAttribute> train(Instances trainData) {
+	private ArrayList<BayesAttribute> train(Instances trainData) 
+	{
 		ArrayList<BayesAttribute> attributes = new ArrayList<>();
 		
 		// Init arraylist of attributes data
 		Enumeration<Attribute> enumAttr = trainData.enumerateAttributes();
-		while (enumAttr.hasMoreElements()) {
+		while (enumAttr.hasMoreElements()) 
+		{
 			attributes.add(new BayesAttribute(enumAttr.nextElement()));
 		}
 		
 		// Parse training data into attributes data
 		Attribute classAttr = trainData.classAttribute();
 		Enumeration<Instance> enumTrain = trainData.enumerateInstances();
-		while (enumTrain.hasMoreElements()) {
+		while (enumTrain.hasMoreElements()) 
+		{
 			Instance data = enumTrain.nextElement();
 			double spamValue = data.value(classAttr);
 			boolean isSpam = spamValue == 1.0;
 			
-			for (BayesAttribute attr : attributes) {
+			for (BayesAttribute attr : attributes)
+			{
 				double value = data.value(attr.getWekaAttribute());
 				attr.parse(value, isSpam);
 			}
@@ -103,21 +103,18 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 	
 		// Simplify attributes to keep only the most significative ones
 		ArrayList<BayesAttribute> goodAttributes = new ArrayList<>();
-		for (BayesAttribute attr : attributes) {
+		for (BayesAttribute attr : attributes) 
+		{
 			double spamRatio = attr.getSpamProbability();
-			if (spamRatio > 0.4) {
+			if (spamRatio > 0.4)
 				goodAttributes.add(attr);
-			}
 		}
 		
 		return goodAttributes;
 	}
 	
-	/**
-	 * Use the previously established attributes to validate predictions on validation data
-	 * 
-	 * @param data
-	 * @param attributes
+	/*
+	 * Use the previously established attributes to validate predictions on validation data.
 	 */
 	private void testClassify(Instances validData, ArrayList<BayesAttribute> attributes) 
 	{
@@ -126,31 +123,30 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 
 		int success = 0, error = 0;
 		Enumeration<Instance> enumData = validData.enumerateInstances();
-		while (enumData.hasMoreElements()) {
+		while (enumData.hasMoreElements()) 
+		{
 			int flagsCount = 0;
 			
 			Instance element = enumData.nextElement();
 			// Check presence of value (rise flag) for every attribute
-			for (BayesAttribute attr : attributes) {
+			for (BayesAttribute attr : attributes) 
+			{
 				double value = element.value(attr.getWekaAttribute());
 				
-				if (value > 0.0) {
+				if (value > 0.0)
 					flagsCount++;
-				}
 			}
 			
 			// Flag as spam if at least half the flags were risen
 			int result = 0;
-			if (flagsCount > (nPossibleFlags / 2)) {
+			if (flagsCount > (nPossibleFlags / 2))
 				result = 1;
-			}
 			
 			double expected = element.value(classAttr);
-			if (expected == result) {
+			if (expected == result) 
 				success++;
-			} else {
+			else
 				error++;
-			}
 		}
 		
 		System.out.println("Accuracy: " + (double)success / (double)(success + error));

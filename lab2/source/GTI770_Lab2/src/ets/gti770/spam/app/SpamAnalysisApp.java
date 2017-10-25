@@ -1,6 +1,7 @@
 package ets.gti770.spam.app;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 
 import ets.gti770.spam.classifiers.ISpamClassifierStrategy;
@@ -24,7 +25,7 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class SpamAnalysisApp
 {
 	// Available classifiers
-	private enum ClassifierID {Bayes, KNN, J48, NONE}
+	private enum ClassifierID { Bayes, KNN, J48, NONE }
 	private static ISpamClassifierStrategy[] classifiers = {
 			new BayesSpamClassifier(),
 			new KNNSpamClassifier(),
@@ -35,7 +36,6 @@ public class SpamAnalysisApp
 	private static final ClassifierID BestClassifier = ClassifierID.J48;
 	private static final ClassifierID WorstClassifier = ClassifierID.Bayes;
 	private static final String trainFileName = "train-data.arff";
-	//private static final String trainFileName = "td.arff";
 	
 	/*
 	 * Launches the application
@@ -58,20 +58,18 @@ public class SpamAnalysisApp
 		String outputFileBest = args[1];
 		String outputFileWorst = args[2];
 		
-		String localTrainFileName = "";
-		
 		DataSource sourceTrain = null;
 		DataSource sourceInput = null;
 		
 		try 
 		{
 			// Load the local resource
-			// This allows the file to be packaged inside the Jar
-			localTrainFileName = SpamAnalysisApp.class.
-					getResource(trainFileName).toURI().getPath();
+			// This allows the file to be packaged inside the Jar			
+			InputStream is = SpamAnalysisApp.class.
+					getResourceAsStream(trainFileName);
 		
 			// Load the training data
-			sourceTrain = new DataSource(localTrainFileName);
+			sourceTrain = new DataSource(is);
 			Instances trainData = sourceTrain.getDataSet();
 			if (trainData.classIndex() == -1)
 				trainData.setClassIndex(trainData.numAttributes() - 1);
