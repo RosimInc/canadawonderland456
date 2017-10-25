@@ -27,8 +27,57 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 	{
 		int[] results = new int[inputData.size()];
 		
-		ArrayList<BayesAttribute> attributes = new ArrayList<>();
 		// JS Bayes - Train data
+		ArrayList<BayesAttribute> significativeAttributes = train(trainData);
+		int nPossibleFlags = significativeAttributes.size();
+		Attribute classAttr = inputData.classAttribute();
+
+		// JS Bayes - Classify input data
+		int i = 0;
+		int success = 0, error = 0;
+		Enumeration<Instance> enumData = inputData.enumerateInstances();
+		while (enumData.hasMoreElements()) {
+			int flagsCount = 0;
+			
+			Instance data = enumData.nextElement();
+			// Check presence of value (rise flag) for every significative attribute
+			for (BayesAttribute attr : significativeAttributes) {
+				double value = data.value(attr.getWekaAttribute());
+				
+				if (value > 0.0) {
+					flagsCount++;
+				}
+			}
+			
+			// Flag as spam if at least half the flags were risen
+			if (flagsCount > (nPossibleFlags / 2)) {
+				results[i] = 1;
+			}
+			
+			double realValue = data.value(classAttr);
+			if (realValue == results[i]) {
+				success++;
+			} else {
+				error++;
+			}
+			
+			i++;
+		}
+		
+		System.out.println("Accuracy: " + (double)success / (double)(success + error));
+		
+		return results;
+	}
+
+	/**
+	 * Train with data to determine the best attributes to use for data validation
+	 * according to Bayes probability analysis
+	 * 
+	 * @param trainData
+	 * @return goodAttributes
+	 */
+	private ArrayList<BayesAttribute> train(Instances trainData) {
+		ArrayList<BayesAttribute> attributes = new ArrayList<>();
 		
 		// Init arraylist of attributes data
 		Enumeration<Attribute> enumAttr = trainData.enumerateAttributes();
@@ -38,9 +87,9 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 		
 		// Parse training data into attributes data
 		Attribute classAttr = trainData.classAttribute();
-		Enumeration<Instance> enumInstances = trainData.enumerateInstances();
-		while (enumInstances.hasMoreElements()) {
-			Instance data = enumInstances.nextElement();
+		Enumeration<Instance> enumTrain = trainData.enumerateInstances();
+		while (enumTrain.hasMoreElements()) {
+			Instance data = enumTrain.nextElement();
 			double spamValue = data.value(classAttr);
 			boolean isSpam = spamValue == 1.0;
 			
@@ -49,7 +98,8 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 				attr.parse(value, isSpam);
 			}
 		}
-
+	
+		// Simplify attributes to keep only the most significative ones
 		ArrayList<BayesAttribute> goodAttributes = new ArrayList<>();
 		for (BayesAttribute attr : attributes) {
 			double spamRatio = attr.getSpamProbability();
@@ -58,14 +108,6 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 			}
 		}
 		
-		for (BayesAttribute attr : goodAttributes) {
-			System.out.println(attr.getWekaAttribute().name() + ", ratio: " + attr.getSpamProbability());
-		}
-		
-		// JS Bayes - Classify input data
-
-		// JS Bayes - Make sure all new classes are package
-		
-		return results;
+		return goodAttributes;
 	}
 }
