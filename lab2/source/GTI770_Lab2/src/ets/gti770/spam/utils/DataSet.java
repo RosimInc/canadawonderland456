@@ -10,7 +10,7 @@ import weka.core.Instances;
  * @author Simon Robert
  * @version 2017-10-25
  */
-public class DataSet 
+public class DataSet
 {
 	public final Instances instances;
 	public final int numSpam;

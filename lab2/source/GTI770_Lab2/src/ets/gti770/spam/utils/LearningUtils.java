@@ -12,8 +12,8 @@ import weka.core.Instances;
  * @author Simon Robert
  * @version 2017-10-25
  */
-public class LearningUtils {
-	
+public class LearningUtils
+{	
 	/**
 	 * This utility method returns the entropy of a certain
 	 *  probability of spam values.

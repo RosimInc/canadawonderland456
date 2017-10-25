@@ -12,6 +12,7 @@ import weka.core.Instances;
 /**
  * This class trains and classifies data following the Bayes
  *  algorithm.
+ *  
  * @author Jean-Philippe Leclerc
  * @author Jonathan Saindon
  * @author Simon Robert
@@ -51,7 +52,7 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 			int flagsCount = 0;
 			
 			Instance element = enumData.nextElement();
-			// Check presence of value (raise flag) for every significative attribute
+			// Check presence of value (raise flag) for every significant attribute
 			for (BayesAttribute attr : significativeAttributes) 
 			{
 				double value = element.value(attr.getWekaAttribute());
@@ -63,6 +64,8 @@ public class BayesSpamClassifier implements ISpamClassifierStrategy
 			// Flag as spam if at least half the flags were risen
 			if (flagsCount > (nPossibleFlags / 2)) 
 				results[i] = 1;
+			
+			results[i] = 1 - results[i];
 			
 			i++;
 		}

@@ -41,14 +41,14 @@ class BayesAttribute
 	{
 		if (isSpam) 
 		{
-			if (value > 0.01) 
+			if (value > 0.0) 
 				truePositive++;
 			else
 				falseNegative++;
 		}
 		else 
 		{
-			if (value > 0.01)
+			if (value > 0.0)
 				falsePositive++;
 			else
 				trueNegative++;
